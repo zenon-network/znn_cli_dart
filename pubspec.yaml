@@ -1,0 +1,16 @@
+name: znn_cli_dart
+description: Zenon CLI tool
+version: 0.0.1
+publish_to: none
+
+environment:
+  sdk: '>=2.14.0 <3.0.0'
+
+dependencies:
+  dcli: ^1.7.1
+  znn_sdk_dart:
+    path: ./packages/znn_sdk_dart
+
+dev_dependencies:
+  test: ^1.17.9
+  lints: ^1.0.1
