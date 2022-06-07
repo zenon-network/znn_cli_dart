@@ -1,6 +1,6 @@
 name: znn_cli_dart
 description: Zenon CLI tool
-version: 0.0.1
+version: 0.0.4
 publish_to: none
 
 environment:
@@ -9,7 +9,9 @@ environment:
 dependencies:
   dcli: ^1.7.1
   znn_sdk_dart:
-    path: ./packages/znn_sdk_dart
+    git:
+      url: https://github.com/zenon-network/znn_sdk_dart.git
+      ref: 367ddc7fbfefb6484d7553d9ac7e4532003a7008 # v0.0.4
 
 dev_dependencies:
   test: ^1.17.9
