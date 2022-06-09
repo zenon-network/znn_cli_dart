@@ -134,7 +134,7 @@ Future<void> handleCli(List<String> args) async {
       znnClient.wsClient
           .addOnConnectionEstablishedCallback((broadcaster) async {
         print('Subscribing for account-block events ...');
-        await znnClient.subscribe.toAllAccountEvents();
+        await znnClient.subscribe.toAllAccountBlocks();
         print('Subscribed successfully!');
 
         broadcaster.listen((json) async {
@@ -994,7 +994,7 @@ Future<void> handleCli(List<String> args) async {
 
       print('Minting ZTS token ...');
       await znnClient.send(
-          znnClient.embedded.token.mint(tokenStandard, amount, mintAddress));
+          znnClient.embedded.token.mintToken(tokenStandard, amount, mintAddress));
       print('Done');
       break;
 

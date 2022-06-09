@@ -10,7 +10,7 @@ import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 const znnDaemon = 'znnd';
 const znnCli = 'znn-cli';
-const znnCliVersion = '0.0.1';
+const znnCliVersion = '0.0.4';
 
 String _argsUsage = '';
 

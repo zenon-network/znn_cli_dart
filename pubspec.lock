@@ -557,9 +557,11 @@ packages:
   znn_sdk_dart:
     dependency: "direct main"
     description:
-      path: "packages/znn_sdk_dart"
-      relative: true
-    source: path
-    version: "0.0.1"
+      path: "."
+      ref: HEAD
+      resolved-ref: "367ddc7fbfefb6484d7553d9ac7e4532003a7008"
+      url: "https://github.com/zenon-network/znn_sdk_dart"
+    source: git
+    version: "0.0.4"
 sdks:
   dart: ">=2.14.0 <3.0.0"
