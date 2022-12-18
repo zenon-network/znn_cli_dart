@@ -84,7 +84,7 @@ jobs:
               rm releases/generator
               wget -q https://github.com/alienc0der/argon2_ffi/releases/download/cicd/libargon2_ffi-darwin-universal.zip
               unzip -j libargon2_ffi-darwin-universal.zip -d releases/
-              zip -jr znn-cli-darwin-universal.zip releases/znn-cli releases/libpow_links.dylib releases/libargon2_ffi.dylib
+              zip -jr releases/znn-cli-darwin-universal.zip releases/znn-cli releases/libpow_links.dylib releases/libargon2_ffi.dylib
               rm releases/znn-cli releases/libpow_links.dylib releases/libargon2_ffi.dylib
           - name: Generate checksums
             run: cd releases/ && echo $(sha256sum *) >> SHA256CHECKSUMS.txt
