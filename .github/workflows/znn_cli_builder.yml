@@ -1,0 +1,85 @@
+name: Build and release znn-cli
+
+on:
+  push:
+    branches:
+      - cicd
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+jobs:
+  build-matrix:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-20.04, windows-latest, macOS-12]
+        include:
+          - os: ubuntu-20.04
+            output-name: znn-cli-linux
+          - os: macOS-12
+            output-name: znn-cli-macos
+          - os: windows-latest
+            output-name: znn-cli-windows.exe
+    steps:
+          - name: Checkout
+            uses: actions/checkout@v3
+          - uses: dart-lang/setup-dart@v1.3
+          - name: Install dependencies
+            run: dart pub get
+          - name: Build znn-cli
+            run: dart compile exe cli_handler.dart -o ${{ matrix.output-name }}
+          - uses: actions/upload-artifact@v3
+            with:
+              name: ${{ matrix.os }}-artifacts
+              path: ${{ matrix.output-name }}
+  make-release:
+        needs: [build-matrix]
+        runs-on: ubuntu-20.04
+        steps:
+          - name: Prepare environment
+            run: |
+              sudo apt update
+              sudo apt install zip unzip wget
+          - name: Prepare releases directory
+            run: mkdir releases
+          - name: Download artifacts
+            uses: actions/download-artifact@v3
+            with:
+              name: ${{ matrix.os }}-artifacts
+          - name: Package Linux binaries
+            run: |
+              wget -q https://github.com/alienc0der/znn-pow-links-cpp/releases/download/cicd/libpow_links-linux-amd64.zip
+              unzip -j libpow_links-linux-amd64.zip -d releases/
+              wget -q https://github.com/alienc0der/argon2_ffi/releases/download/cicd/libargon2_ffi-linux-amd64.zip
+              unzip -j libargon2_ffi-linux-amd64.zip -d releases/
+              zip -jr znn-cli-linux-amd64.zip releases/libpow_links.so releases/libargon2_ffi.so
+              rm releases/libpow_links.so releases/libargon2_ffi.so
+          - name: Package Windows binaries
+            run: |
+              wget -q https://github.com/alienc0der/znn-pow-links-cpp/releases/download/cicd/libpow_links-windows-amd64.zip
+              unzip -j libpow_links-windows-amd64.zip -d releases/
+              wget -q https://github.com/alienc0der/argon2_ffi/releases/download/cicd/libargon2_ffi-windows-amd64.zip
+              unzip -j libargon2_ffi-windows-amd64.zip -d releases/
+              zip -jr znn-cli-windows-amd64.zip releases/libpow_links.dll releases/libargon2_ffi.dll
+              rm releases/libpow_links.dll releases/libargon2_ffi.dll
+          - name: Package darwin binaries
+            run: |
+              wget -q https://github.com/alienc0der/znn-pow-links-cpp/releases/download/cicd/libpow_links-darwin-universal.zip
+              unzip -j libpow_links-darwin-universal.zip -d releases/
+              rm releases/generator
+              wget -q https://github.com/alienc0der/argon2_ffi/releases/download/cicd/libargon2_ffi-darwin-universal.zip
+              unzip -j libargon2_ffi-darwin-universal.zip -d releases/
+              zip -jr znn-cli-darwin-universal.zip releases/libpow_links.dylib releases/libargon2_ffi.dylib
+              rm releases/libpow_links.dylib releases/libargon2_ffi.dylib
+          - name: Generate checksums
+            run: cd releases/ && echo $(sha256sum *) >> SHA256CHECKSUMS.txt
+          - name: Upload files to a GitHub release
+            uses: svenstaro/upload-release-action@2.3.0
+            with:
+              repo_token: ${{ secrets.GITHUB_TOKEN }}
+              file: releases/*
+              tag: ${{ github.ref }}
+              file_glob: true
+              overwrite: true
+              body: ""
