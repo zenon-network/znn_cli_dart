@@ -43,10 +43,18 @@ jobs:
               sudo apt install zip unzip wget
           - name: Prepare releases directory
             run: mkdir releases
-          - name: Download artifacts
+          - name: Download Linux artifacts
             uses: actions/download-artifact@v3
             with:
-              name: ${{ matrix.os }}-artifacts
+              name: ubuntu-20.04-artifacts
+          - name: Download macOS artifacts
+            uses: actions/download-artifact@v3
+            with:
+              name: macOS-12-artifacts
+          - name: Download Windows artifacts
+            uses: actions/download-artifact@v3
+            with:
+              name: windows-latest-artifacts
           - name: Package Linux binaries
             run: |
               wget -q https://github.com/alienc0der/znn-pow-links-cpp/releases/download/cicd/libpow_links-linux-amd64.zip
@@ -63,7 +71,7 @@ jobs:
               unzip -j libargon2_ffi-windows-amd64.zip -d releases/
               zip -jr znn-cli-windows-amd64.zip releases/libpow_links.dll releases/libargon2_ffi.dll
               rm releases/libpow_links.dll releases/libargon2_ffi.dll
-          - name: Package darwin binaries
+          - name: Package macOS binaries
             run: |
               wget -q https://github.com/alienc0der/znn-pow-links-cpp/releases/download/cicd/libpow_links-darwin-universal.zip
               unzip -j libpow_links-darwin-universal.zip -d releases/
