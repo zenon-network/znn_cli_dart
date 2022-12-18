@@ -42,7 +42,7 @@ jobs:
               sudo apt update
               sudo apt install zip unzip wget
           - name: Prepare releases directory
-            run: mkdir releases
+            run: mkdir releases && ls -lah
           - name: Download Linux artifacts
             uses: actions/download-artifact@v3
             with:
@@ -55,6 +55,8 @@ jobs:
             uses: actions/download-artifact@v3
             with:
               name: windows-latest-artifacts
+          - name: List directories
+            run: ls -lah
           - name: Package Linux binaries
             run: |
               unzip -j ubuntu-20.04-artifacts.zip
