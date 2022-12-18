@@ -57,29 +57,36 @@ jobs:
               name: windows-latest-artifacts
           - name: Package Linux binaries
             run: |
+              unzip -j ubuntu-20.04-artifacts.zip
+              mv znn-cli-linux releases/znn-cli
               wget -q https://github.com/alienc0der/znn-pow-links-cpp/releases/download/cicd/libpow_links-linux-amd64.zip
               unzip -j libpow_links-linux-amd64.zip -d releases/
               wget -q https://github.com/alienc0der/argon2_ffi/releases/download/cicd/libargon2_ffi-linux-amd64.zip
               unzip -j libargon2_ffi-linux-amd64.zip -d releases/
-              zip -jr znn-cli-linux-amd64.zip releases/libpow_links.so releases/libargon2_ffi.so
-              rm releases/libpow_links.so releases/libargon2_ffi.so
+              zip -jr releases/znn-cli-linux-amd64.zip releases/znn-cli releases/libpow_links.so releases/libargon2_ffi.so
+              rm releases/znn-cli releases/libpow_links.so releases/libargon2_ffi.so
           - name: Package Windows binaries
             run: |
+              unzip -j windows-latest-artifacts.zip
+              mv znn-cli-windows.exe releases/znn-cli.exe
               wget -q https://github.com/alienc0der/znn-pow-links-cpp/releases/download/cicd/libpow_links-windows-amd64.zip
               unzip -j libpow_links-windows-amd64.zip -d releases/
+              rm releases/generator.exe
               wget -q https://github.com/alienc0der/argon2_ffi/releases/download/cicd/libargon2_ffi-windows-amd64.zip
               unzip -j libargon2_ffi-windows-amd64.zip -d releases/
-              zip -jr znn-cli-windows-amd64.zip releases/libpow_links.dll releases/libargon2_ffi.dll
-              rm releases/libpow_links.dll releases/libargon2_ffi.dll
+              zip -jr releases/znn-cli-windows-amd64.zip releases/znn-cli.exe releases/libpow_links.dll releases/libargon2_ffi.dll
+              rm releases/znn-cli.exe releases/libpow_links.dll releases/libargon2_ffi.dll
           - name: Package macOS binaries
             run: |
+              unzip -j macOS-12-artifacts.zip
+              mv znn-cli-macos releases/znn-cli
               wget -q https://github.com/alienc0der/znn-pow-links-cpp/releases/download/cicd/libpow_links-darwin-universal.zip
               unzip -j libpow_links-darwin-universal.zip -d releases/
               rm releases/generator
               wget -q https://github.com/alienc0der/argon2_ffi/releases/download/cicd/libargon2_ffi-darwin-universal.zip
               unzip -j libargon2_ffi-darwin-universal.zip -d releases/
-              zip -jr znn-cli-darwin-universal.zip releases/libpow_links.dylib releases/libargon2_ffi.dylib
-              rm releases/libpow_links.dylib releases/libargon2_ffi.dylib
+              zip -jr znn-cli-darwin-universal.zip releases/znn-cli releases/libpow_links.dylib releases/libargon2_ffi.dylib
+              rm releases/znn-cli releases/libpow_links.dylib releases/libargon2_ffi.dylib
           - name: Generate checksums
             run: cd releases/ && echo $(sha256sum *) >> SHA256CHECKSUMS.txt
           - name: Upload files to a GitHub release
