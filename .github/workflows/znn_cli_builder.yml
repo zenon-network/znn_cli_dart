@@ -81,7 +81,7 @@ jobs:
           - name: Package macOS binaries
             run: |
               mv znn-cli-macos releases/znn-cli
-              chmod +x releases/znn-cli.exe
+              chmod +x releases/znn-cli
               wget -q https://github.com/alienc0der/znn-pow-links-cpp/releases/download/cicd/libpow_links-darwin-universal.zip
               unzip -j libpow_links-darwin-universal.zip -d releases/
               rm releases/generator
