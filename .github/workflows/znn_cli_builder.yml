@@ -60,6 +60,7 @@ jobs:
           - name: Package Linux binaries
             run: |
               mv znn-cli-linux releases/znn-cli
+              chmod +x releases/znn-cli
               wget -q https://github.com/alienc0der/znn-pow-links-cpp/releases/download/cicd/libpow_links-linux-amd64.zip
               unzip -j libpow_links-linux-amd64.zip -d releases/
               wget -q https://github.com/alienc0der/argon2_ffi/releases/download/cicd/libargon2_ffi-linux-amd64.zip
@@ -69,6 +70,7 @@ jobs:
           - name: Package Windows binaries
             run: |
               mv znn-cli-windows.exe releases/znn-cli.exe
+              chmod +x releases/znn-cli.exe
               wget -q https://github.com/alienc0der/znn-pow-links-cpp/releases/download/cicd/libpow_links-windows-amd64.zip
               unzip -j libpow_links-windows-amd64.zip -d releases/
               rm releases/generator.exe
@@ -79,6 +81,7 @@ jobs:
           - name: Package macOS binaries
             run: |
               mv znn-cli-macos releases/znn-cli
+              chmod +x releases/znn-cli.exe
               wget -q https://github.com/alienc0der/znn-pow-links-cpp/releases/download/cicd/libpow_links-darwin-universal.zip
               unzip -j libpow_links-darwin-universal.zip -d releases/
               rm releases/generator
