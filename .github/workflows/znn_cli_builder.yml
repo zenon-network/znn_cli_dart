@@ -58,21 +58,19 @@ jobs:
           - name: List directories
             run: ls -lah
           - name: Download libpow_links
-          - uses: robinraju/release-downloader@v1.6
+            uses: robinraju/release-downloader@v1.6
             with:
-                repository: "https://github.com/alienc0der/znn-pow-links-cpp"
-                latest: true
-                tag: "cicd"
-                fileName: "*.zip"
-                zipBall: true
+              repository: "https://github.com/alienc0der/znn-pow-links-cpp"
+              latest: true
+              fileName: "*.zip"
+              zipBall: true
           - name: Download libargon2
-          - uses: robinraju/release-downloader@v1.6
+            uses: robinraju/release-downloader@v1.6
             with:
-                repository: "https://github.com/alienc0der/argon2_ffi"
-                latest: true
-                tag: "cicd"
-                fileName: "*.zip"
-                zipBall: true
+              repository: "https://github.com/alienc0der/argon2_ffi"
+              latest: true
+              fileName: "*.zip"
+              zipBall: true
           - name: Package Linux binaries
             run: |
               mv znn-cli-linux releases/znn-cli
