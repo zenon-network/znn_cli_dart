@@ -57,32 +57,44 @@ jobs:
               name: windows-latest-artifacts
           - name: List directories
             run: ls -lah
+          - name: Download libpow_links
+          - uses: robinraju/release-downloader@v1.6
+            with:
+                repository: "https://github.com/alienc0der/znn-pow-links-cpp"
+                latest: true
+                tag: "cicd"
+                fileName: "*.zip"
+                zipBall: true
+          - name: Download libargon2
+          - uses: robinraju/release-downloader@v1.6
+            with:
+                repository: "https://github.com/alienc0der/argon2_ffi"
+                latest: true
+                tag: "cicd"
+                fileName: "*.zip"
+                zipBall: true
           - name: Package Linux binaries
             run: |
               mv znn-cli-linux releases/znn-cli
               chmod +x releases/znn-cli
-              wget -q https://github.com/alienc0der/znn-pow-links-cpp/releases/download/cicd/libpow_links-linux-amd64.zip
               unzip -j libpow_links-linux-amd64.zip -d releases/
-              wget -q https://github.com/alienc0der/argon2_ffi/releases/download/cicd/libargon2_ffi-linux-amd64.zip
               unzip -j libargon2_ffi-linux-amd64.zip -d releases/
-              zip -jr releases/znn-cli-linux-amd64.zip releases/znn-cli releases/libpow_links.so releases/libargon2_ffi.so
+              zip -jr releases/znn-cli-linux-amd64.zip releases/znn-cli releases/libpow_links.so releases/libargon2_ffi_plugin.so
               rm releases/znn-cli releases/libpow_links.so releases/libargon2_ffi.so
           - name: Package Windows binaries
             run: |
               mv znn-cli-windows.exe releases/znn-cli.exe
               chmod +x releases/znn-cli.exe
-              wget -q https://github.com/alienc0der/znn-pow-links-cpp/releases/download/cicd/libpow_links-windows-amd64.zip
               unzip -j libpow_links-windows-amd64.zip -d releases/
               rm releases/generator.exe
               wget -q https://github.com/alienc0der/argon2_ffi/releases/download/cicd/libargon2_ffi-windows-amd64.zip
               unzip -j libargon2_ffi-windows-amd64.zip -d releases/
-              zip -jr releases/znn-cli-windows-amd64.zip releases/znn-cli.exe releases/libpow_links.dll releases/libargon2_ffi.dll
+              zip -jr releases/znn-cli-windows-amd64.zip releases/znn-cli.exe releases/libpow_links.dll releases/argon2_ffi_plugin.dll
               rm releases/znn-cli.exe releases/libpow_links.dll releases/libargon2_ffi.dll
           - name: Package macOS binaries
             run: |
               mv znn-cli-macos releases/znn-cli
               chmod +x releases/znn-cli
-              wget -q https://github.com/alienc0der/znn-pow-links-cpp/releases/download/cicd/libpow_links-darwin-universal.zip
               unzip -j libpow_links-darwin-universal.zip -d releases/
               rm releases/generator
               wget -q https://github.com/alienc0der/argon2_ffi/releases/download/cicd/libargon2_ffi-darwin-universal.zip
