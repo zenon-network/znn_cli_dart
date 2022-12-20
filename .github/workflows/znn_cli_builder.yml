@@ -60,8 +60,6 @@ jobs:
             with:
               repository: "alienc0der/znn-pow-links-cpp"
               latest: true
-              fileName: "*.zip"
-              zipBall: true
           - name: Download libargon2
             uses: robinraju/release-downloader@v1.6
             with:
