@@ -74,7 +74,7 @@ jobs:
               unzip -j libpow_links-linux-amd64.zip -d releases/
               unzip -j libargon2_ffi-linux-amd64.zip -d releases/
               zip -jr releases/znn-cli-linux-amd64.zip releases/znn-cli releases/libpow_links.so releases/libargon2_ffi_plugin.so
-              rm releases/znn-cli releases/libpow_links.so releases/libargon2_ffi.so
+              rm releases/znn-cli releases/libpow_links.so releases/libargon2_ffi_plugin.so
           - name: Package Windows binaries
             run: |
               mv znn-cli-windows.exe releases/znn-cli.exe
@@ -84,7 +84,7 @@ jobs:
               wget -q https://github.com/alienc0der/argon2_ffi/releases/download/cicd/libargon2_ffi-windows-amd64.zip
               unzip -j libargon2_ffi-windows-amd64.zip -d releases/
               zip -jr releases/znn-cli-windows-amd64.zip releases/znn-cli.exe releases/libpow_links.dll releases/argon2_ffi_plugin.dll
-              rm releases/znn-cli.exe releases/libpow_links.dll releases/libargon2_ffi.dll
+              rm releases/znn-cli.exe releases/libpow_links.dll releases/argon2_ffi_plugin.dll
           - name: Package macOS binaries
             run: |
               mv znn-cli-macos releases/znn-cli
