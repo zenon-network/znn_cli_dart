@@ -67,8 +67,6 @@ jobs:
             with:
               repository: "alienc0der/argon2_ffi"
               latest: true
-              fileName: "*.zip"
-              zipBall: true
           - name: List directories
             run: ls -lah
           - name: Package Linux binaries
