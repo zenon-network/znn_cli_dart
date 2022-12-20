@@ -55,22 +55,22 @@ jobs:
             uses: actions/download-artifact@v3
             with:
               name: windows-latest-artifacts
-          - name: List directories
-            run: ls -lah
           - name: Download libpow_links
             uses: robinraju/release-downloader@v1.6
             with:
-              repository: "https://github.com/alienc0der/znn-pow-links-cpp"
+              repository: "alienc0der/znn-pow-links-cpp"
               latest: true
               fileName: "*.zip"
               zipBall: true
           - name: Download libargon2
             uses: robinraju/release-downloader@v1.6
             with:
-              repository: "https://github.com/alienc0der/argon2_ffi"
+              repository: "alienc0der/argon2_ffi"
               latest: true
               fileName: "*.zip"
               zipBall: true
+          - name: List directories
+            run: ls -lah
           - name: Package Linux binaries
             run: |
               mv znn-cli-linux releases/znn-cli
