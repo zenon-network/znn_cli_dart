@@ -13,9 +13,9 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-20.04, windows-latest, macOS-12]
+        os: [ubuntu-latest, windows-latest, macOS-12]
         include:
-          - os: ubuntu-20.04
+          - os: ubuntu-latest
             output-name: znn-cli-linux
           - os: macOS-12
             output-name: znn-cli-macos
@@ -29,20 +29,22 @@ jobs:
             run: dart pub get
           - name: Build znn-cli
             run: dart compile exe cli_handler.dart -o ${{ matrix.output-name }}
+          - name: Upload artifacts
           - uses: actions/upload-artifact@v3
             with:
               name: ${{ matrix.os }}-artifacts
               path: ${{ matrix.output-name }}
   make-release:
         needs: [build-matrix]
-        runs-on: ubuntu-20.04
+        runs-on: ubuntu-latest
         steps:
           - name: Prepare environment
             run: |
               sudo apt update
-              sudo apt install zip unzip wget
+              sudo apt upgrade -y
+              sudo apt install -y zip unzip wget
           - name: Prepare releases directory
-            run: mkdir releases && ls -lah
+            run: mkdir releases
           - name: Download Linux artifacts
             uses: actions/download-artifact@v3
             with:
@@ -65,8 +67,6 @@ jobs:
             with:
               repository: "alienc0der/argon2_ffi"
               latest: true
-          - name: List directories
-            run: ls -lah
           - name: Package Linux binaries
             run: |
               mv znn-cli-linux releases/znn-cli
