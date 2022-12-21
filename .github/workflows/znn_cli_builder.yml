@@ -81,9 +81,8 @@ jobs:
               mv znn-cli-windows.exe releases/znn-cli.exe
               chmod +x releases/znn-cli.exe
               unzip -j libpow_links-windows-amd64.zip -d releases/
-              rm releases/generator.exe
-              wget -q https://github.com/alienc0der/argon2_ffi/releases/download/cicd/libargon2_ffi-windows-amd64.zip
               unzip -j libargon2_ffi-windows-amd64.zip -d releases/
+              rm releases/generator.exe
               zip -jr releases/znn-cli-windows-amd64.zip releases/znn-cli.exe releases/libpow_links.dll releases/argon2_ffi_plugin.dll
               rm releases/znn-cli.exe releases/libpow_links.dll releases/argon2_ffi_plugin.dll
           - name: Package macOS binaries
@@ -91,9 +90,8 @@ jobs:
               mv znn-cli-macos releases/znn-cli
               chmod +x releases/znn-cli
               unzip -j libpow_links-darwin-universal.zip -d releases/
-              rm releases/generator
-              wget -q https://github.com/alienc0der/argon2_ffi/releases/download/cicd/libargon2_ffi-darwin-universal.zip
               unzip -j libargon2_ffi-darwin-universal.zip -d releases/
+              rm releases/generator
               zip -jr releases/znn-cli-darwin-universal.zip releases/znn-cli releases/libpow_links.dylib releases/libargon2_ffi.dylib
               rm releases/znn-cli releases/libpow_links.dylib releases/libargon2_ffi.dylib
           - name: Generate checksums
