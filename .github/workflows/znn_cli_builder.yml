@@ -49,7 +49,7 @@ jobs:
           - name: Download Linux artifacts
             uses: actions/download-artifact@v3
             with:
-              name: ubuntu-20.04-artifacts
+              name: ubuntu-latest-artifacts
           - name: Download macOS artifacts
             uses: actions/download-artifact@v3
             with:
