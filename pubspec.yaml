@@ -7,12 +7,13 @@ environment:
   sdk: '>=2.14.0 <3.0.0'
 
 dependencies:
-  dcli: ^1.7.1
+  dcli: ^3.0.2
+  args: ^2.4.2
   znn_sdk_dart:
     git:
-      url: https://github.com/zenon-network/znn_sdk_dart.git
-      ref: 367ddc7fbfefb6484d7553d9ac7e4532003a7008 # v0.0.4
+      url: https://github.com/alienc0der/znn_sdk_dart.git
+      ref: e0b39b696c23ba3cd964df59d743e070b84a5f81 # bigint-support
 
 dev_dependencies:
-  test: ^1.17.9
-  lints: ^1.0.1
+  test: ^1.24.4
+  lints: ^2.1.1
