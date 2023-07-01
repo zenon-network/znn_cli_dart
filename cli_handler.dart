@@ -258,13 +258,12 @@ Future<void> handleCli(List<String> args) async {
           num.parse(args[2] * oneQsr), coinDecimals);
       if (amount < fuseMinQsrAmount) {
         print(
-            '${red('Invalid amount')}: ${AmountUtils.addDecimals(amount, coinDecimals)} ${blue('QSR')}. Minimum staking amount is ${AmountUtils.addDecimals(fuseMinQsrAmount, coinDecimals)}');
+            '${red('Invalid amount')}: ${AmountUtils.addDecimals(amount, coinDecimals)} ${blue('QSR')}. Minimum amount for fusing is ${AmountUtils.addDecimals(fuseMinQsrAmount, coinDecimals)}');
         break;
+      } else if (amount % BigInt.from(oneQsr) != BigInt.zero) {
+        print('${red('Error!')} Amount has to be integer');
+         break;
       }
-      // else if (amount % oneQsr != 0) {
-      //   print('${red('Error!')} Amount has to be integer');
-      //   break;
-      // }
       print(
           'Fusing ${AmountUtils.addDecimals(amount, coinDecimals)} ${blue('QSR')} to ${args[1]}');
       await znnClient.send(znnClient.embedded.plasma.fuse(beneficiary, amount));
