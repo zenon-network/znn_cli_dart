@@ -95,6 +95,8 @@ Future<int> initZnn(List<String> args, Function handler) async {
       help: 'Select the local keyStore');
   argParser.addOption('index',
       abbr: 'i', defaultsTo: '0', help: 'Address index');
+  argParser.addOption('chainid',
+      abbr: 'c', defaultsTo: '1', help: 'Provide a chain identifier');
 
   // Flags
   argParser.addFlag('verbose',
@@ -116,8 +118,12 @@ Future<int> initZnn(List<String> args, Function handler) async {
     return 0;
   }
 
+  if (argResult.wasParsed('chainid')) {
+    setChainIdentifier(chainIdentifier: int.parse(argResult['chainid']));
+  }
+
   if (argResult.wasParsed('verbose')) {
-    logger.level = Level.INFO;
+    logger.level = Level.ALL;
   }
 
   ensureDirectoriesExist();

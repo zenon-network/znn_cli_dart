@@ -96,7 +96,10 @@ jobs:
               zip -jr releases/znn-cli-darwin-universal.zip releases/znn-cli releases/libpow_links.dylib releases/libargon2_ffi.dylib
               rm releases/znn-cli releases/libpow_links.dylib releases/libargon2_ffi.dylib
           - name: Generate checksums
-            run: cd releases/ && echo $(sha256sum *) >> SHA256CHECKSUMS.txt
+            run: |
+              cd releases/
+              echo $(sha256sum *)
+              echo $(sha256sum *) >> SHA256CHECKSUMS.txt
           - name: Upload files to a GitHub release
             uses: svenstaro/upload-release-action@2.6.1
             with:
