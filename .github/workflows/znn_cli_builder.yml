@@ -1,0 +1,107 @@
+name: Build and release znn-cli
+
+on:
+  push:
+    branches:
+      - cicd
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+jobs:
+  build-matrix:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macOS-12]
+        include:
+          - os: ubuntu-latest
+            output-name: znn-cli-linux
+          - os: macOS-12
+            output-name: znn-cli-macos
+          - os: windows-latest
+            output-name: znn-cli-windows.exe
+    steps:
+          - name: Checkout
+            uses: actions/checkout@v3
+          - name: Setup Dart SDK
+            uses: dart-lang/setup-dart@v1.5.0
+          - name: Install dependencies
+            run: dart pub get
+          - name: Build znn-cli
+            run: dart compile exe cli_handler.dart -o ${{ matrix.output-name }}
+          - name: Upload artifacts
+            uses: actions/upload-artifact@v3
+            with:
+              name: ${{ matrix.os }}-artifacts
+              path: ${{ matrix.output-name }}
+  make-release:
+        needs: [build-matrix]
+        runs-on: ubuntu-latest
+        steps:
+          - name: Prepare environment
+            run: |
+              sudo apt update
+              sudo apt upgrade -y
+              sudo apt install -y zip unzip wget
+          - name: Prepare releases directory
+            run: mkdir releases
+          - name: Download Linux artifacts
+            uses: actions/download-artifact@v3
+            with:
+              name: ubuntu-latest-artifacts
+          - name: Download macOS artifacts
+            uses: actions/download-artifact@v3
+            with:
+              name: macOS-12-artifacts
+          - name: Download Windows artifacts
+            uses: actions/download-artifact@v3
+            with:
+              name: windows-latest-artifacts
+          - name: Download libpow_links
+            uses: robinraju/release-downloader@v1.8
+            with:
+              repository: "alienc0der/znn-pow-links-cpp"
+              latest: true
+          - name: Download libargon2
+            uses: robinraju/release-downloader@v1.8
+            with:
+              repository: "alienc0der/argon2_ffi"
+              latest: true
+          - name: Package Linux binaries
+            run: |
+              mv znn-cli-linux releases/znn-cli
+              chmod +x releases/znn-cli
+              unzip -j libpow_links-linux-amd64.zip -d releases/
+              unzip -j libargon2_ffi-linux-amd64.zip -d releases/
+              zip -jr releases/znn-cli-linux-amd64.zip releases/znn-cli releases/libpow_links.so releases/libargon2_ffi_plugin.so
+              rm releases/znn-cli releases/libpow_links.so releases/libargon2_ffi_plugin.so
+          - name: Package Windows binaries
+            run: |
+              mv znn-cli-windows.exe releases/znn-cli.exe
+              chmod +x releases/znn-cli.exe
+              unzip -j libpow_links-windows-amd64.zip -d releases/
+              unzip -j libargon2_ffi-windows-amd64.zip -d releases/
+              rm releases/generator.exe
+              zip -jr releases/znn-cli-windows-amd64.zip releases/znn-cli.exe releases/libpow_links.dll releases/argon2_ffi_plugin.dll
+              rm releases/znn-cli.exe releases/libpow_links.dll releases/argon2_ffi_plugin.dll
+          - name: Package macOS binaries
+            run: |
+              mv znn-cli-macos releases/znn-cli
+              chmod +x releases/znn-cli
+              unzip -j libpow_links-darwin-universal.zip -d releases/
+              unzip -j libargon2_ffi-darwin-universal.zip -d releases/
+              rm releases/generator
+              zip -jr releases/znn-cli-darwin-universal.zip releases/znn-cli releases/libpow_links.dylib releases/libargon2_ffi.dylib
+              rm releases/znn-cli releases/libpow_links.dylib releases/libargon2_ffi.dylib
+          - name: Generate checksums
+            run: cd releases/ && echo $(sha256sum *) >> SHA256CHECKSUMS.txt
+          - name: Upload files to a GitHub release
+            uses: svenstaro/upload-release-action@2.6.1
+            with:
+              repo_token: ${{ secrets.GITHUB_TOKEN }}
+              file: releases/*
+              tag: ${{ github.ref }}
+              file_glob: true
+              overwrite: true
+              body: ""
