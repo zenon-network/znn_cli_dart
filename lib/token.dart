@@ -1,6 +1,8 @@
+import 'dart:io';
+
 import 'package:dcli/dcli.dart' hide verbose;
+import 'package:znn_cli_dart/lib.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
-import 'src.dart';
 
 void tokenMenu() {
   print('  ${white('ZTS Tokens')}');
@@ -78,25 +80,26 @@ Future<void> _list() async {
     pageIndex = int.parse(args[1]);
     pageSize = int.parse(args[2]);
   }
+  if (!areValidPageVars(pageIndex, pageSize)) {
+    return;
+  }
   TokenList tokenList = await znnClient.embedded.token
       .getAll(pageIndex: pageIndex, pageSize: pageSize);
   for (Token token in tokenList.list!) {
-    if (token.tokenStandard == znnZts || token.tokenStandard == qsrZts) {
-      print(
-          '${token.tokenStandard == znnZts ? green(token.name) : blue(token.name)} with symbol ${token.tokenStandard == znnZts ? green(token.symbol) : blue(token.symbol)} and standard ${token.tokenStandard == znnZts ? green(token.tokenStandard.toString()) : blue(token.tokenStandard.toString())}');
-      print(
-          '   Created by ${token.tokenStandard == znnZts ? green(token.owner.toString()) : blue(token.owner.toString())}');
-      print(
-          '   ${token.tokenStandard == znnZts ? green(token.name) : blue(token.name)} has ${token.decimals} decimals, ${token.isMintable ? 'is mintable' : 'is not mintable'}, ${token.isBurnable ? 'can be burned' : 'cannot be burned'}, and ${token.isUtility ? 'is a utility coin' : 'is not a utility coin'}');
-      print(
-          '   The total supply is ${AmountUtils.addDecimals(token.totalSupply, token.decimals)} and the maximum supply is ${AmountUtils.addDecimals(token.maxSupply, token.decimals)}');
-    } else {
-      print(
-          'Token ${token.name} with symbol ${token.symbol} and standard ${magenta(token.tokenStandard.toString())}');
-      print('   Issued by ${token.owner.toString()}');
-      print(
-          '   ${token.name} has ${token.decimals} decimals, ${token.isMintable ? 'can be minted' : 'cannot be minted'}, ${token.isBurnable ? 'can be burned' : 'cannot be burned'}, and ${token.isUtility ? 'is a utility token' : 'is not a utility token'}');
+    Function color = getColor(token.tokenStandard);
+    String issuance = 'Created';
+    if (token.tokenStandard.toString() != qsrTokenStandard &&
+        token.tokenStandard.toString() != znnTokenStandard) {
+      stdout.write('Token ');
+      issuance = 'Issued';
     }
+    print(
+        '${color(token.name)} with symbol ${color(token.symbol)} and standard ${color(token.tokenStandard.toString())}');
+    print('   $issuance by ${color(token.owner.toString())}');
+    print(
+        '   ${color(token.name)} has ${token.decimals} decimals, ${token.isMintable ? 'is mintable' : 'is not mintable'}, ${token.isBurnable ? 'can be burned' : 'cannot be burned'}, and ${token.isUtility ? 'is a utility coin' : 'is not a utility coin'}');
+    print(
+        '   The total supply is ${AmountUtils.addDecimals(token.totalSupply, token.decimals)} and the maximum supply is ${AmountUtils.addDecimals(token.maxSupply, token.decimals)}');
     print('   Domain `${token.domain}`');
   }
 }
@@ -107,15 +110,16 @@ Future<void> _getByStandard() async {
     print('token.getByStandard tokenStandard');
     return;
   }
-  TokenStandard tokenStandard = TokenStandard.parse(args[1]);
-  Token token = (await znnClient.embedded.token.getByZts(tokenStandard))!;
+  TokenStandard tokenStandard = getTokenStandard(args[1]);
+  Token token = await getToken(tokenStandard);
   String type = 'Token';
   if (token.tokenStandard.toString() == qsrTokenStandard ||
       token.tokenStandard.toString() == znnTokenStandard) {
     type = 'Coin';
   }
+  Function color = getColor(token.tokenStandard);
   print(
-      '$type ${token.name} with symbol ${token.symbol} and standard ${token.tokenStandard.toString()}');
+      '${color(type)} ${token.name} with symbol ${color(token.symbol)} and standard ${color(token.tokenStandard.toString())}');
   print('   Created by ${green(token.owner.toString())}');
   print(
       '   The total supply is ${AmountUtils.addDecimals(token.totalSupply, token.decimals)} and a maximum supply is ${AmountUtils.addDecimals(token.maxSupply, token.decimals)}');
@@ -130,7 +134,7 @@ Future<void> _getByOwner() async {
     return;
   }
   String type = 'Token';
-  Address ownerAddress = Address.parse(args[1]);
+  Address ownerAddress = parseAddress(args[1]);
   TokenList tokens = await znnClient.embedded.token.getByOwner(ownerAddress);
   for (Token token in tokens.list!) {
     type = 'Token';
@@ -138,8 +142,9 @@ Future<void> _getByOwner() async {
         token.tokenStandard.toString() == qsrTokenStandard) {
       type = 'Coin';
     }
+    Function color = getColor(token.tokenStandard);
     print(
-        '$type ${token.name} with symbol ${token.symbol} and standard ${token.tokenStandard.toString()}');
+        '${color(type)} ${token.name} with symbol ${color(token.symbol)} and standard ${color(token.tokenStandard.toString())}');
     print('   Created by ${green(token.owner.toString())}');
     print(
         '   The total supply is ${AmountUtils.addDecimals(token.totalSupply, token.decimals)} and a maximum supply is ${AmountUtils.addDecimals(token.maxSupply, token.decimals)}');
@@ -262,10 +267,10 @@ Future<void> _issue() async {
     }
   }
 
-  print('Issuing a new ${green('ZTS token')} will burn 1 ZNN');
+  print('Issuing a new ${magenta('ZTS token')} will burn 1 ZNN');
   if (!confirm('Do you want to proceed?', defaultValue: false)) return;
 
-  print('Issuing ${args[1]} ZTS token ...');
+  print('Issuing ${magenta(args[1])} ZTS token ...');
   await znnClient.send(znnClient.embedded.token.issueToken(args[1], args[2],
       args[3], totalSupply, maxSupply, decimals, mintable, burnable, utility));
   print('Done');
@@ -277,15 +282,12 @@ Future<void> _mint() async {
     print('token.mint tokenStandard amount receiveAddress');
     return;
   }
-  TokenStandard tokenStandard = TokenStandard.parse(args[1]);
+  TokenStandard tokenStandard = getTokenStandard(args[1]);
   BigInt amount = BigInt.parse(args[2]);
-  Address mintAddress = Address.parse(args[3]);
+  Address mintAddress = parseAddress(args[3]);
 
-  Token? token = await znnClient.embedded.token.getByZts(tokenStandard);
-  if (token == null) {
-    print('${red('Error!')} The token does not exist');
-    return;
-  } else if (token.isMintable == false) {
+  Token token = await getToken(tokenStandard);
+  if (token.isMintable == false) {
     print('${red('Error!')} The token is not mintable');
     return;
   }
@@ -302,10 +304,10 @@ Future<void> _burn() async {
     print('token.burn tokenStandard amount');
     return;
   }
-  TokenStandard tokenStandard = TokenStandard.parse(args[1]);
+  TokenStandard tokenStandard = getTokenStandard(args[1]);
   BigInt amount = BigInt.parse(args[2]);
 
-  if (!await hasBalance(znnClient, address, tokenStandard, amount)) {
+  if (!await hasBalance(address, tokenStandard, amount)) {
     return;
   }
 
@@ -322,9 +324,9 @@ Future<void> _transferOwnership() async {
     return;
   }
   print('Transferring ZTS token ownership ...');
-  TokenStandard tokenStandard = TokenStandard.parse(args[1]);
-  Address newOwnerAddress = Address.parse(args[2]);
-  var token = (await znnClient.embedded.token.getByZts(tokenStandard))!;
+  TokenStandard tokenStandard = getTokenStandard(args[1]);
+  Address newOwnerAddress = parseAddress(args[2]);
+  Token token = await getToken(tokenStandard);
   if (token.owner.toString() != address.toString()) {
     print('${red('Error!')} Not owner of token ${args[1]}');
     return;
@@ -341,8 +343,8 @@ Future<void> _disableMint() async {
     return;
   }
   print('Disabling ZTS token mintable flag ...');
-  TokenStandard tokenStandard = TokenStandard.parse(args[1]);
-  var token = (await znnClient.embedded.token.getByZts(tokenStandard))!;
+  TokenStandard tokenStandard = getTokenStandard(args[1]);
+  Token token = await getToken(tokenStandard);
   if (token.owner.toString() != address.toString()) {
     print('${red('Error!')} Not owner of token ${args[1]}');
     return;

@@ -3,8 +3,8 @@ import 'dart:io';
 import 'package:bip39/bip39.dart' as bip39;
 import 'package:dcli/dcli.dart' hide verbose;
 import 'package:path/path.dart' as path;
+import 'package:znn_cli_dart/lib.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
-import 'src.dart';
 
 void walletMenu() {
   print('  ${white('Wallet')}');

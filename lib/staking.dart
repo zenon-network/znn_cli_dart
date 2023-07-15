@@ -1,6 +1,6 @@
 import 'package:dcli/dcli.dart' hide verbose;
+import 'package:znn_cli_dart/lib.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
-import 'src.dart';
 
 void stakingMenu() {
   print('  ${white('Staking')}');
@@ -49,6 +49,10 @@ Future<void> _list() async {
     pageIndex = int.parse(args[1]);
     pageSize = int.parse(args[2]);
   }
+  if (!areValidPageVars(pageIndex, pageSize)) {
+    return;
+  }
+
   final currentTime = (DateTime.now().millisecondsSinceEpoch / 1000).round();
   StakeList stakeList = await znnClient.embedded.stake
       .getEntriesByAddress(address, pageIndex: pageIndex, pageSize: pageSize);
@@ -109,7 +113,7 @@ Future<void> _revoke() async {
     print('stake.revoke id');
     return;
   }
-  Hash hash = Hash.parse(args[1]);
+  Hash hash = parseHash(args[1]);
 
   final currentTime = (DateTime.now().millisecondsSinceEpoch / 1000).round();
   int pageIndex = 0;

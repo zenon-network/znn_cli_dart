@@ -1,8 +1,8 @@
 import 'dart:math';
 
 import 'package:dcli/dcli.dart' hide verbose;
+import 'package:znn_cli_dart/lib.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
-import 'src.dart';
 
 void statsMenu() {
   print('  ${white('Stats')}');

@@ -4,8 +4,8 @@ import 'dart:io';
 import 'package:collection/collection.dart';
 import 'package:convert/convert.dart';
 import 'package:dcli/dcli.dart' hide verbose;
+import 'package:znn_cli_dart/lib.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
-import 'src.dart';
 
 void htlcMenu() {
   print('  ${white('HTLC')}');
@@ -88,7 +88,10 @@ Future<void> _create() async {
 
   Address hashLockedAddress;
   TokenStandard tokenStandard = getTokenStandard(args[2]);
-  BigInt amount;
+  Token token = await getToken(tokenStandard);
+  BigInt amount =
+      AmountUtils.extractDecimals(num.parse(args[3]), token.decimals);
+  Function color = getColor(tokenStandard);
   int expirationTime;
   late Hash hashLock;
   int keyMaxSize = htlcPreimageMaxLength;
@@ -98,22 +101,17 @@ Future<void> _create() async {
   int htlcTimelockMinHours = 1;
   int htlcTimelockMaxHours = htlcTimelockMinHours * 24;
 
-  try {
-    hashLockedAddress = Address.parse(args[1]);
-  } catch (e) {
-    print('${red('Error!')} hashLockedAddress must be a valid address');
+  hashLockedAddress = parseAddress(args[1]);
+  if (!assertUserAddress(hashLockedAddress)) {
     return;
   }
-
-  Token token = (await znnClient.embedded.token.getByZts(tokenStandard))!;
-  amount = AmountUtils.extractDecimals(num.parse(args[3]), token.decimals);
 
   if (amount <= BigInt.zero) {
     print('${red('Error!')} amount must be greater than 0');
     return;
   }
 
-  if (!await hasBalance(znnClient, address, tokenStandard, amount)) {
+  if (!await hasBalance(address, tokenStandard, amount)) {
     return;
   }
 
@@ -130,17 +128,12 @@ Future<void> _create() async {
   }
 
   if (args.length == 7) {
-    try {
-      hashLock = Hash.parse(args[6]);
-    } catch (e) {
-      print('${red('Error!')} hashLock is not a valid hash');
-      return;
-    }
+    hashLock = parseHash(args[6]);
   } else {
     switch (hashType) {
       case 1:
         hashLock = Hash.fromBytes(await Crypto.sha256Bytes(preimage));
-        return;
+        break;
       default:
         hashLock = Hash.digest(preimage);
     }
@@ -170,10 +163,10 @@ Future<void> _create() async {
 
   if (args.length == 7) {
     print(
-        'Creating htlc with amount ${AmountUtils.addDecimals(amount, token.decimals)} ${token.symbol}');
+        'Creating htlc with amount ${AmountUtils.addDecimals(amount, token.decimals)} ${color(token.symbol)}');
   } else {
     print(
-        'Creating htlc with amount ${AmountUtils.addDecimals(amount, token.decimals)} ${token.symbol} using preimage ${green(hex.encode(preimage))}');
+        'Creating htlc with amount ${AmountUtils.addDecimals(amount, token.decimals)} ${color(token.symbol)} using preimage ${green(hex.encode(preimage))}');
   }
   print('  Can be reclaimed in ${format(duration)} by $address');
   print(
@@ -194,27 +187,14 @@ Future<void> _unlock() async {
     return;
   }
 
-  Hash id;
+  Hash id = parseHash(args[1]);
   String preimage = '';
   late Hash preimageCheck;
   int hashType = 0;
   int currentTime = ((DateTime.now().millisecondsSinceEpoch) / 1000).floor();
 
-  try {
-    id = Hash.parse(args[1]);
-  } catch (e) {
-    print('${red('Error!')} id is not a valid hash');
-    return;
-  }
-
-  HtlcInfo htlc;
-  try {
-    htlc = await znnClient.embedded.htlc.getById(id);
-    hashType = htlc.hashType;
-  } catch (e) {
-    print('${red('Error!')} The htlc id $id does not exist');
-    return;
-  }
+  HtlcInfo htlc = await _getById(id);
+  hashType = htlc.hashType;
 
   if (!await znnClient.embedded.htlc.getProxyUnlockStatus(htlc.hashLocked)) {
     print('${red('Error!')} Cannot unlock htlc. Permission denied');
@@ -240,7 +220,7 @@ Future<void> _unlock() async {
 
   switch (hashType) {
     case 1:
-      print('HashType 1 detected. Encoding preimage to SHA-256...');
+      print('HashType 1 detected. Encoding preimage to SHA2-256...');
       preimageCheck =
           Hash.fromBytes(await Crypto.sha256Bytes(hex.decode(preimage)));
       return;
@@ -253,8 +233,10 @@ Future<void> _unlock() async {
     return;
   }
 
-  await znnClient.embedded.token.getByZts(htlc.tokenStandard).then((token) => print(
-      'Unlocking htlc id ${htlc.id} with amount ${AmountUtils.addDecimals(htlc.amount, token!.decimals)} ${token.symbol}'));
+  Token token = await getToken(htlc.tokenStandard);
+  Function color = getColor(htlc.tokenStandard);
+  print(
+      'Unlocking htlc id ${htlc.id} with amount ${AmountUtils.addDecimals(htlc.amount, token.decimals)} ${color(token.symbol)}');
 
   await znnClient
       .send(znnClient.embedded.htlc.unlock(id, hex.decode(preimage)));
@@ -270,23 +252,9 @@ Future<void> _reclaim() async {
     return;
   }
 
-  Hash id;
+  Hash id = parseHash(args[1]);
   int currentTime = ((DateTime.now().millisecondsSinceEpoch) / 1000).floor();
-
-  try {
-    id = Hash.parse(args[1]);
-  } catch (e) {
-    print('${red('Error!')} id is not a valid hash');
-    return;
-  }
-
-  HtlcInfo htlc;
-  try {
-    htlc = await znnClient.embedded.htlc.getById(id);
-  } catch (e) {
-    print('${red('Error!')} The htlc id $id does not exist');
-    return;
-  }
+  HtlcInfo htlc = await _getById(id);
 
   if (htlc.expirationTime > currentTime) {
     format(Duration d) => d.toString().split('.').first.padLeft(8, '0');
@@ -300,8 +268,10 @@ Future<void> _reclaim() async {
     return;
   }
 
-  await znnClient.embedded.token.getByZts(htlc.tokenStandard).then((token) => print(
-      'Reclaiming htlc id ${htlc.id} with amount ${AmountUtils.addDecimals(htlc.amount, token!.decimals)} ${token.symbol}'));
+  Token token = await getToken(htlc.tokenStandard);
+  Function color = getColor(htlc.tokenStandard);
+  print(
+      'Reclaiming htlc id ${htlc.id} with amount ${AmountUtils.addDecimals(htlc.amount, token.decimals)} ${color(token.symbol)}');
 
   await znnClient.send(znnClient.embedded.htlc.reclaim(id));
   print('Done');
@@ -316,27 +286,15 @@ Future<void> _get() async {
     return;
   }
 
-  Hash id;
+  Hash id = parseHash(args[1]);
+  HtlcInfo htlc = await _getById(id);
+  Token token = await getToken(htlc.tokenStandard);
+  Function color = getColor(htlc.tokenStandard);
   int currentTime = ((DateTime.now().millisecondsSinceEpoch) / 1000).floor();
   format(Duration d) => d.toString().split('.').first.padLeft(8, '0');
 
-  try {
-    id = Hash.parse(args[1]);
-  } catch (e) {
-    print('${red('Error!')} id is not a valid hash');
-    return;
-  }
-
-  HtlcInfo htlc;
-  try {
-    htlc = await znnClient.embedded.htlc.getById(id);
-  } catch (e) {
-    print('The htlc id $id does not exist');
-    return;
-  }
-
-  await znnClient.embedded.token.getByZts(htlc.tokenStandard).then((token) => print(
-      'Htlc id ${htlc.id} with amount ${AmountUtils.addDecimals(htlc.amount, token!.decimals)} ${token.symbol}'));
+  print(
+      'Htlc id ${htlc.id} with amount ${AmountUtils.addDecimals(htlc.amount, token.decimals)} ${color(token.symbol)}');
   if (htlc.expirationTime > currentTime) {
     print(
         '   Can be unlocked by ${htlc.hashLocked} with hashlock ${Hash.fromBytes(htlc.hashLock)} hashtype ${htlc.hashType}');
@@ -356,7 +314,7 @@ Future<void> _inspect() async {
     return;
   }
 
-  Hash blockHash = Hash.parse(args[1]);
+  Hash blockHash = parseHash(args[1]);
   var block = await znnClient.ledger.getAccountBlockByHash(blockHash);
 
   if (block == null) {
@@ -433,7 +391,7 @@ Future<void> _getProxyStatus() async {
   }
 
   try {
-    address = Address.parse(args[1]);
+    address = parseAddress(args[1]);
   } catch (e) {
     print('${red('Error!')} address is not valid');
     return;
@@ -466,22 +424,8 @@ Future<void> _monitor() async {
     return;
   }
 
-  Hash id;
-  HtlcInfo htlc;
-
-  try {
-    id = Hash.parse(args[1]);
-  } catch (e) {
-    print('${red('Error!')} id is not a valid hash');
-    return;
-  }
-
-  try {
-    htlc = await znnClient.embedded.htlc.getById(id);
-  } catch (e) {
-    print('The htlc id $id does not exist');
-    return;
-  }
+  Hash id = parseHash(args[1]);
+  HtlcInfo htlc = await _getById(id);
   List<HtlcInfo> htlcs = [];
   htlcs.add(htlc);
 
@@ -516,7 +460,7 @@ Future<bool> _monitorAsync(
             continue;
           } else {
             var hash = tx['hash'];
-            queue.add(Hash.parse(hash));
+            queue.add(parseHash(hash));
             print('Receiving transaction with hash ${orange(hash)}');
           }
         }
@@ -559,7 +503,7 @@ Future<bool> _monitorAsync(
 
       if (queue.isNotEmpty) {
         for (var hash in _queue) {
-          // Identify if htlc tx are either 'Unlock' or 'Reclaim'
+          // Identify if htlc txs are either 'Unlock' or 'Reclaim'
           var block = await znnClient.ledger.getAccountBlockByHash(hash);
 
           if (block?.blockType != BlockTypeEnum.userSend.index) {
@@ -616,7 +560,7 @@ Future<bool> _monitorAsync(
           }
 
           // If 'Reclaim', inform user that a monitored, expired htlc
-          // and has been reclaimed by the timeLocked address
+          // has been reclaimed by the timeLocked address
           for (var htlc in _waitingToBeReclaimed) {
             if (f.name.toString() == 'Reclaim') {
               if (block?.address != htlc.timeLocked) {
@@ -654,4 +598,12 @@ Future<bool> _monitorAsync(
   }
   print('No longer monitoring the htlc');
   return true;
+}
+
+Future<HtlcInfo> _getById(Hash id) async {
+  try {
+    return await znnClient.embedded.htlc.getById(id);
+  } catch (e) {
+    throw ('${red('Error!')} The htlc id $id does not exist');
+  }
 }

@@ -1,6 +1,6 @@
 import 'package:dcli/dcli.dart' hide verbose;
+import 'package:znn_cli_dart/lib.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
-import 'src.dart';
 
 void plasmaMenu() {
   print('  ${white('Plasma')}');
@@ -11,6 +11,11 @@ void plasmaMenu() {
 }
 
 Future<void> plasmaFunctions() async {
+  if (args[0].split('.').isEmpty) {
+    plasmaMenu();
+    return;
+  }
+
   switch (args[0].split('.')[1]) {
     case 'list':
       verbose ? print('Description: List plasma fusion entries') : null;
@@ -57,6 +62,10 @@ Future<void> _list() async {
     pageIndex = int.parse(args[1]);
     pageSize = int.parse(args[2]);
   }
+  if (!areValidPageVars(pageIndex, pageSize)) {
+    return;
+  }
+
   FusionEntryList fusionEntryList = await znnClient.embedded.plasma
       .getEntriesByAddress(address, pageIndex: pageIndex, pageSize: pageSize);
 
@@ -81,7 +90,7 @@ Future<void> _get() async {
     print('plasma.get address');
     return;
   }
-  Address address = Address.parse(args[1]);
+  Address address = parseAddress(args[1]);
   PlasmaInfo plasmaInfo = await znnClient.embedded.plasma.get(address);
   print(
       '${green(address.toString())} has ${plasmaInfo.currentPlasma} / ${plasmaInfo.maxPlasma}'
@@ -94,8 +103,12 @@ Future<void> _fuse() async {
     print('plasma.fuse toAddress amount (in ${blue('QSR')})');
     return;
   }
-  Address beneficiary = Address.parse(args[1]);
+  Address beneficiary = parseAddress(args[1]);
   BigInt amount = AmountUtils.extractDecimals(num.parse(args[2]), coinDecimals);
+
+  if (!assertUserAddress(beneficiary)) {
+    return;
+  }
 
   if (amount < fuseMinQsrAmount) {
     print(
@@ -117,7 +130,7 @@ Future<void> _cancel() async {
     print('plasma.cancel id');
     return;
   }
-  Hash id = Hash.parse(args[1]);
+  Hash id = parseHash(args[1]);
 
   int pageIndex = 0;
   bool found = false;

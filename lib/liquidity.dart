@@ -1,6 +1,8 @@
+import 'dart:typed_data';
+
 import 'package:dcli/dcli.dart' hide verbose;
+import 'package:znn_cli_dart/lib.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
-import 'src.dart';
 
 void liquidityMenu() {
   print('  ${white('Liquidity')}');
@@ -21,10 +23,10 @@ void liquidityAdminMenu() {
   print('    liquidity.admin.emergency');
   print('    liquidity.admin.halt');
   print('    liquidity.admin.unhalt');
-  print('    liquidity.admin.changeAdmin');
-  print('    liquidity.admin.nominateGuardians');
-  print('    liquidity.admin.unlockStakeEntries');
-  print('    liquidity.admin.setAdditionalReward');
+  print('    liquidity.admin.changeAdmin address');
+  print('    liquidity.admin.nominateGuardians address1 address2 ... addressN');
+  print('    liquidity.admin.unlockStakeEntries tokenStandard');
+  print('    liquidity.admin.setAdditionalReward znnReward qsrReward');
   print('    liquidity.admin.setTokenTuple');
 }
 
@@ -109,16 +111,15 @@ Future<void> _info() async {
 
   for (TokenTuple tuple in info.tokenTuples) {
     {
-      Token token =
-          (await znnClient.embedded.token.getByZts(tuple.tokenStandard))!;
+      Token token = await getToken(tuple.tokenStandard);
+      Function color = getColor(tuple.tokenStandard);
 
-      var type = "Token";
-
+      var type = 'Token';
       if (token.tokenStandard == qsrZts || token.tokenStandard == znnZts) {
-        type = "Coin";
+        type = 'Coin';
       }
       print(
-          '      $type ${token.name} with symbol ${token.symbol} and standard ${token.tokenStandard}');
+          '      $type ${color(token.name)} with symbol ${color(token.symbol)} and standard ${color(token.tokenStandard.toString())}');
       print(
           '        ${green('ZNN ${tuple.znnPercentage / 100}%')} ${blue('QSR ${tuple.qsrPercentage / 100}%')} minimum amount ${AmountUtils.addDecimals(tuple.minAmount, token.decimals)}');
       print('');
@@ -177,7 +178,7 @@ Future<void> _getRewardTotal() async {
     return;
   }
 
-  Address address = Address.parse(args[1]);
+  Address address = parseAddress(args[1]);
   RewardHistoryList list =
       await znnClient.embedded.liquidity.getFrontierRewardByPage(address);
 
@@ -212,7 +213,7 @@ Future<void> _getStakeEntries() async {
     return;
   }
 
-  Address address = Address.parse(args[1]);
+  Address address = parseAddress(args[1]);
   LiquidityStakeList list = await znnClient.embedded.liquidity
       .getLiquidityStakeEntriesByAddress(address);
 
@@ -225,8 +226,7 @@ Future<void> _getStakeEntries() async {
   print('   Total Amount: ${list.totalAmount}');
   print('   Total Weighted Amount: ${list.totalWeightedAmount}');
   for (LiquidityStakeEntry info in list.list) {
-    Token token =
-        (await znnClient.embedded.token.getByZts(info.tokenStandard))!;
+    Token token = await getToken(info.tokenStandard);
 
     int currentTime = ((DateTime.now().millisecondsSinceEpoch) / 1000).floor();
     format(Duration d) => d.toString().split('.').first.padLeft(8, '0');
@@ -257,7 +257,7 @@ Future<void> _getUncollectedReward() async {
     return;
   }
 
-  Address address = Address.parse(args[1]);
+  Address address = parseAddress(args[1]);
   RewardDeposit uncollectedRewards =
       await znnClient.embedded.liquidity.getUncollectedReward(address);
 
@@ -281,9 +281,9 @@ Future<void> _stake() async {
   }
 
   int months = int.parse(args[1]);
-  int duration = months * 24 * 60 * 60;
-  TokenStandard tokenStandard = TokenStandard.parse(args[3]);
-  Token token = (await znnClient.embedded.token.getByZts(tokenStandard))!;
+  int duration = months * stakeTimeUnitSec;
+  TokenStandard tokenStandard = getTokenStandard(args[3]);
+  Token token = await getToken(tokenStandard);
   BigInt amount =
       AmountUtils.extractDecimals(num.parse(args[2]), token.decimals);
 
@@ -294,7 +294,7 @@ Future<void> _stake() async {
     return;
   }
 
-  if (!await hasBalance(znnClient, address, tokenStandard, amount)) {
+  if (!await hasBalance(address, tokenStandard, amount)) {
     return;
   }
 
@@ -328,9 +328,9 @@ Future<void> _stake() async {
 
   print(
       'Staking ${AmountUtils.addDecimals(amount, token.decimals)} ${token.symbol} for $months month${months > 1 ? 's' : null} ...');
-  AccountBlockTemplate liquidityStake = znnClient.embedded.liquidity
+  AccountBlockTemplate block = znnClient.embedded.liquidity
       .liquidityStake(duration, amount, tokenStandard);
-  liquidityStake = await znnClient.send(liquidityStake);
+  await znnClient.send(block);
   print('Done');
 }
 
@@ -341,7 +341,7 @@ Future<void> _cancelStake() async {
     return;
   }
 
-  Hash id = Hash.parse(args[1]);
+  Hash id = parseHash(args[1]);
 
   LiquidityStakeList list = await znnClient.embedded.liquidity
       .getLiquidityStakeEntriesByAddress(address);
@@ -366,9 +366,9 @@ Future<void> _cancelStake() async {
 
     if (currentTime > entry!.expirationTime) {
       print('Cancelling liquidity stake ...');
-      AccountBlockTemplate cancelLiquidityStake =
+      AccountBlockTemplate block =
           znnClient.embedded.liquidity.cancelLiquidityStake(id);
-      cancelLiquidityStake = await znnClient.send(cancelLiquidityStake);
+      await znnClient.send(block);
       print('Done');
       print(
           'Use ${green('receiveAll')} to collect your staked amount after 2 momentums');
@@ -396,9 +396,8 @@ Future<void> _collectRewards() async {
         '   ${blue('QSR')}: ${blue(AmountUtils.addDecimals(uncollectedRewards.qsrAmount, coinDecimals))}');
     print('');
     print('Collecting rewards ...');
-    AccountBlockTemplate collectReward =
-        znnClient.embedded.liquidity.collectReward();
-    collectReward = await znnClient.send(collectReward);
+    AccountBlockTemplate block = znnClient.embedded.liquidity.collectReward();
+    await znnClient.send(block);
     print('Done');
   } else {
     print('No uncollected rewards');
@@ -432,15 +431,18 @@ Future<void> _proposeAdmin() async {
   String currentAdmin = (await znnClient.embedded.liquidity.getLiquidityInfo())
       .administrator
       .toString();
-  Address newAdmin = Address.parse(args[1]);
+  Address newAdmin = parseAddress(args[1]);
+  if (!assertUserAddress(newAdmin)) {
+    return;
+  }
 
   if (currentAdmin == '' ||
       currentAdmin.isEmpty ||
       currentAdmin == emptyAddress.toString()) {
     print('Proposing new liquidity administrator ...');
-    AccountBlockTemplate proposeAdministrator =
+    AccountBlockTemplate block =
         znnClient.embedded.liquidity.proposeAdministrator(newAdmin);
-    proposeAdministrator = await znnClient.send(proposeAdministrator);
+    await znnClient.send(block);
     print('Done');
   } else {
     print(
@@ -507,24 +509,24 @@ Future<void> _adminFunctions() async {
 Future<void> _emergency() async {
   _isAdmin();
   print('Initializing liquidity emergency mode ...');
-  AccountBlockTemplate emergency = znnClient.embedded.liquidity.emergency();
-  emergency = await znnClient.send(emergency);
+  AccountBlockTemplate block = znnClient.embedded.liquidity.emergency();
+  await znnClient.send(block);
   print('Done');
 }
 
 Future<void> _halt() async {
   _isAdmin();
   print('Halting the liquidity ...');
-  AccountBlockTemplate halt = znnClient.embedded.liquidity.setIsHalted(false);
-  halt = await znnClient.send(halt);
+  AccountBlockTemplate block = znnClient.embedded.liquidity.setIsHalted(false);
+  await znnClient.send(block);
   print('Done');
 }
 
 Future<void> _unhalt() async {
   _isAdmin();
   print('Unhalting the liquidity ...');
-  AccountBlockTemplate unhalt = znnClient.embedded.liquidity.setIsHalted(false);
-  unhalt = await znnClient.send(unhalt);
+  AccountBlockTemplate block = znnClient.embedded.liquidity.setIsHalted(false);
+  await znnClient.send(block);
   print('Done');
 }
 
@@ -537,12 +539,15 @@ Future<void> _changeAdmin() async {
     return;
   }
 
-  Address newAdmin = Address.parse(args[1]);
+  Address newAdmin = parseAddress(args[1]);
+  if (!assertUserAddress(newAdmin)) {
+    return;
+  }
 
   print('Changing liquidity administrator ...');
-  AccountBlockTemplate changeAdministrator =
+  AccountBlockTemplate block =
       znnClient.embedded.liquidity.changeAdministrator(newAdmin);
-  changeAdministrator = await znnClient.send(changeAdministrator);
+  await znnClient.send(block);
   print('Done');
 }
 
@@ -559,31 +564,84 @@ Future<void> _nominateGuardians() async {
   List<Address> guardians = [];
 
   for (int i = 1; i < args.length; i++) {
-    try {
-      Address guardian = Address.parse(args[i]);
-      if (guardian != emptyAddress) {
-        guardians.add(guardian);
-      }
-    } catch (e) {
-      print('${red('Error!')} ${args[i]} is not a valid address');
+    Address guardian = parseAddress(args[i]);
+    if (!assertUserAddress(guardian)) {
       return;
+    }
+    guardians.add(guardian);
+  }
+
+  List<String> addresses = guardians.map((e) => e.toString()).toSet().toList();
+  addresses.sort();
+
+  if (addresses.length != guardians.length) {
+    print('Duplicate address nomination detected');
+    return;
+  }
+
+  guardians = addresses.map((e) => Address.parse(e)).toList();
+
+  TimeChallengesList list =
+      await znnClient.embedded.liquidity.getTimeChallengesInfo();
+  TimeChallengeInfo? tc;
+
+  if (list.count > 0) {
+    for (var _tc in list.list) {
+      if (_tc.methodName == 'NominateGuardians') {
+        tc = _tc;
+      }
     }
   }
 
-  print('Nominating guardians ...');
-  AccountBlockTemplate nominateGuardians =
+  if (tc != null && tc.paramsHash != emptyHash) {
+    Momentum frontierMomentum = await znnClient.ledger.getFrontierMomentum();
+    SecurityInfo securityInfo =
+        await znnClient.embedded.liquidity.getSecurityInfo();
+
+    if (tc.challengeStartHeight + securityInfo.administratorDelay >
+        frontierMomentum.height) {
+      print('Cannot nominate guardians; wait for time challenge to expire.');
+      return;
+    }
+
+    ByteData bd = combine(guardians);
+    Hash paramsHash = Hash.digest(bd.buffer.asUint8List());
+
+    if (tc.paramsHash == paramsHash) {
+      print('Committing guardians ...');
+    } else {
+      print('Time challenge hash does not match nominated guardians');
+      if (!confirm('Are you sure you want to nominate new guardians?',
+          defaultValue: false)) return;
+      print('Nominating guardians ...');
+    }
+  } else {
+    print('Nominating guardians ...');
+  }
+
+  AccountBlockTemplate block =
       znnClient.embedded.liquidity.nominateGuardians(guardians);
-  nominateGuardians = await znnClient.send(nominateGuardians);
+  await znnClient.send(block);
   print('Done');
 }
 
 Future<void> _unlockStakeEntries() async {
-  AccountBlockTemplate unlockLiquidityStakeEntries =
-      znnClient.embedded.liquidity.unlockLiquidityStakeEntries(
-          TokenStandard.parse('zts17d6yr02kh0r9qr566p7tg6'));
-  unlockLiquidityStakeEntries =
-      await znnClient.send(unlockLiquidityStakeEntries);
-  print(unlockLiquidityStakeEntries.toJson());
+  _isAdmin();
+
+  if (args.length != 2) {
+    print('Incorrect number of arguments. Expected:');
+    print('liquidity.unlockStakeEntries tokenStandard');
+    return;
+  }
+
+  TokenStandard tokenStandard = getTokenStandard(args[1]);
+  Token token = await getToken(tokenStandard);
+
+  print('Unlocking ${token.name}  stake entries ...');
+  AccountBlockTemplate block =
+      znnClient.embedded.liquidity.unlockLiquidityStakeEntries(tokenStandard);
+  await znnClient.send(block);
+  print('Done');
 }
 
 Future<void> _setAdditionalReward() async {
@@ -599,9 +657,9 @@ Future<void> _setAdditionalReward() async {
   int qsrReward = int.parse(args[2]);
 
   print('Setting additional liquidity reward ...');
-  AccountBlockTemplate setAdditionalReward =
+  AccountBlockTemplate block =
       znnClient.embedded.liquidity.setAdditionalReward(znnReward, qsrReward);
-  setAdditionalReward = await znnClient.send(setAdditionalReward);
+  await znnClient.send(block);
   print('Done');
 }
 

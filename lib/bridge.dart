@@ -1,8 +1,10 @@
 import 'dart:convert';
+import 'dart:typed_data';
 
+import 'package:collection/collection.dart';
 import 'package:dcli/dcli.dart' hide verbose;
+import 'package:znn_cli_dart/lib.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
-import 'src.dart';
 
 void bridgeMenu() {
   print('  ${white('Bridge')}');
@@ -16,7 +18,7 @@ void bridgeMenu() {
   print(
       '    bridge.wrap.token networkClass chainId toAddress amount tokenStandard');
   print('    bridge.wrap.list');
-  print('    bridge.wrap.listByAddress toAddress [networkClass chainId]');
+  print('    bridge.wrap.listByAddress address [networkClass chainId]');
   print('    bridge.wrap.listUnsigned');
   print('    bridge.wrap.get id');
   print('    bridge.unwrap.redeem transactionHash logIndex');
@@ -110,6 +112,7 @@ Future<void> bridgeFunctions() async {
 
 Future<void> _info() async {
   BridgeInfo info = await znnClient.embedded.bridge.getBridgeInfo();
+  var metadata = jsonDecode(info.metadata);
   print('Bridge info:');
   print('   Administrator: ${info.administrator}');
   print('   Compressed TSS ECDSA public key: ${info.compressedTssECDSAPubKey}');
@@ -121,7 +124,6 @@ Future<void> _info() async {
   print('   Unhalt duration in momentums: ${info.unhaltDurationInMomentums}');
   print('   TSS nonce: ${info.tssNonce}');
   print('   Metadata:');
-  var metadata = jsonDecode(info.metadata);
   print('      Party Timeout: ${metadata['partyTimeout']}');
   print('      KeyGen Timeout: ${metadata['keyGenTimeout']}');
   print('      KeySign Timeout: ${metadata['keySignTimeout']}');
@@ -193,15 +195,11 @@ Future<void> _fees() async {
   }
   if (args.length == 2) {
     TokenStandard tokenStandard = getTokenStandard(args[1]);
-    Token token = (await znnClient.embedded.token.getByZts(tokenStandard))!;
+    Token token = await getToken(tokenStandard);
     ZtsFeesInfo info =
         await znnClient.embedded.bridge.getFeeTokenPair(tokenStandard);
-    Function color = magenta;
-    if (tokenStandard == znnZts) {
-      color = green;
-    } else if (tokenStandard == qsrZts) {
-      color = blue;
-    }
+    Function color = getColor(tokenStandard);
+
     print(
         'Fees accumulated for ${color(token.symbol)}: ${AmountUtils.addDecimals(info.accumulatedFee, token.decimals)}');
   } else {
@@ -313,7 +311,7 @@ Future<void> _wrapFunctions() async {
     case 'listByAddress':
       verbose
           ? print(
-              'Description: List all wrap token requests made by EVM address')
+              'Description: List all wrap token requests for a NoM or EVM address')
           : null;
       await _wrapListByAddress();
       return;
@@ -347,16 +345,16 @@ Future<void> _wrapToken() async {
   int chainId = int.parse(args[2]);
   String toAddress = args[3]; // must be EVM-compatible
   TokenStandard tokenStandard = getTokenStandard(args[5]);
-  Token token = (await znnClient.embedded.token.getByZts(tokenStandard))!;
+  Token token = await getToken(tokenStandard);
   BigInt amount =
       AmountUtils.extractDecimals(num.parse(args[4]), token.decimals);
 
-  if (amount == BigInt.zero) {
+  if (amount <= BigInt.zero) {
     print('${red('Error!')} You cannot send that amount.');
     return;
   }
 
-  if (!await hasBalance(znnClient, address, tokenStandard, amount)) {
+  if (!await hasBalance(address, tokenStandard, amount)) {
     return;
   }
 
@@ -387,10 +385,9 @@ Future<void> _wrapToken() async {
   }
 
   print('Wrapping token ...');
-  AccountBlockTemplate wrapToken = znnClient.embedded.bridge
+  AccountBlockTemplate block = znnClient.embedded.bridge
       .wrapToken(networkClass, chainId, toAddress, amount, tokenStandard);
-  wrapToken = await znnClient.send(wrapToken);
-  print(wrapToken.toJson());
+  block = await znnClient.send(block);
   print('Done');
 }
 
@@ -408,32 +405,77 @@ Future<void> _wrapList() async {
 }
 
 Future<void> _wrapListByAddress() async {
-  if (args.length != 2 || args.length != 4) {
+  if (args.length != 2 && args.length != 4) {
     print('Incorrect number of arguments. Expected:');
-    print('bridge.wrap.listByAddress toAddress [networkClass] [chainId]');
+    print('bridge.wrap.listByAddress address [networkClass] [chainId]');
     return;
   }
   WrapTokenRequestList list;
   String toAddress = args[1];
-
-  if (args.length == 4) {
-    int networkClass = int.parse(args[2]);
-    int chainId = int.parse(args[3]);
-    list = await znnClient.embedded.bridge
-        .getAllWrapTokenRequestsByToAddressNetworkClassAndChainId(
-            toAddress, networkClass, chainId);
-  } else {
-    list = await znnClient.embedded.bridge
-        .getAllWrapTokenRequestsByToAddress(toAddress);
+  var fromAddress;
+  try {
+    fromAddress = Address.parse(args[1]);
+  } catch (e) {
+    /* assume input is an EVM-compatible address */
   }
 
-  if (list.count > 0) {
-    print('Count: ${list.count}');
-    for (WrapTokenRequest request in list.list) {
-      await _printWrapTokenRequest(request);
+  if (fromAddress != null) {
+    var blocks = await znnClient.ledger.getAccountBlocksByPage(fromAddress);
+    if (blocks.count! > 0) {
+      List<WrapTokenRequest> list = [];
+      for (var block in blocks.list!) {
+        if (block.toAddress == bridgeAddress && block.data.isNotEmpty) {
+          Function eq = const ListEquality().equals;
+          late AbiFunction f;
+          for (var entry in Definitions.bridge.entries) {
+            if (eq(AbiFunction.extractSignature(entry.encodeSignature()),
+                AbiFunction.extractSignature(block.data))) {
+              f = AbiFunction(entry.name!, entry.inputs!);
+            }
+          }
+          if (f.name == 'WrapToken') {
+            var request = await znnClient.embedded.bridge
+                .getWrapTokenRequestById(block.hash);
+            if (args.length == 4) {
+              int networkClass = int.parse(args[2]);
+              int chainId = int.parse(args[3]);
+              if (request.chainId != chainId ||
+                  request.networkClass != networkClass) {
+                continue;
+              }
+            }
+            list.add(request);
+          }
+        }
+      }
+      if (list.isNotEmpty) {
+        print('Count: ${list.length}');
+        for (WrapTokenRequest request in list) {
+          await _printWrapTokenRequest(request);
+        }
+      } else {
+        print('No wrap requests found for $fromAddress');
+      }
     }
   } else {
-    print('No wrap requests found for $toAddress');
+    if (args.length == 4) {
+      int networkClass = int.parse(args[2]);
+      int chainId = int.parse(args[3]);
+      list = await znnClient.embedded.bridge
+          .getAllWrapTokenRequestsByToAddressNetworkClassAndChainId(
+              toAddress, networkClass, chainId);
+    } else {
+      list = await znnClient.embedded.bridge
+          .getAllWrapTokenRequestsByToAddress(toAddress);
+    }
+    if (list.count > 0) {
+      print('Count: ${list.count}');
+      for (WrapTokenRequest request in list.list) {
+        await _printWrapTokenRequest(request);
+      }
+    } else {
+      print('No wrap requests found for $toAddress');
+    }
   }
 }
 
@@ -458,7 +500,7 @@ Future<void> _wrapGet() async {
     return;
   }
 
-  Hash id = Hash.parse(args[1]);
+  Hash id = parseHash(args[1]);
   WrapTokenRequest request =
       await znnClient.embedded.bridge.getWrapTokenRequestById(id);
 
@@ -521,7 +563,7 @@ Future<void> _unwrapRedeem() async {
     return;
   }
 
-  Hash transactionHash = Hash.parse(args[1]);
+  Hash transactionHash = parseHash(args[1]);
   int logIndex = int.parse(args[2]);
 
   UnwrapTokenRequest request = await znnClient.embedded.bridge
@@ -530,9 +572,9 @@ Future<void> _unwrapRedeem() async {
   if (request.redeemed == 0 && request.revoked == 0) {
     _printRedeem(request);
 
-    AccountBlockTemplate redeem = znnClient.embedded.bridge
+    AccountBlockTemplate block = znnClient.embedded.bridge
         .redeem(request.transactionHash, request.logIndex);
-    redeem = await znnClient.send(redeem);
+    await znnClient.send(block);
 
     print('Done');
     if (request.toAddress == address) {
@@ -610,7 +652,7 @@ Future<void> _unwrapListByAddress() async {
     return;
   }
 
-  Address toAddress = Address.parse(args[1]);
+  Address toAddress = parseAddress(args[1]);
 
   UnwrapTokenRequestList list = await znnClient.embedded.bridge
       .getAllUnwrapTokenRequestsByToAddress(toAddress.toString());
@@ -638,7 +680,7 @@ Future<void> _unwrapListUnredeemed() async {
 
   for (UnwrapTokenRequest request in allUnwrapRequests.list) {
     if (request.redeemed == 0 && request.revoked == 0) {
-      if ((args.length == 2 && request.toAddress == Address.parse(args[1])) ||
+      if ((args.length == 2 && request.toAddress == parseAddress(args[1])) ||
           (args.length == 1)) {
         unredeemed.add(request);
       }
@@ -662,7 +704,7 @@ Future<void> _unwrapGet() async {
     return;
   }
 
-  Hash transactionHash = Hash.parse(args[1]);
+  Hash transactionHash = parseHash(args[1]);
   int logIndex = int.parse(args[2]);
 
   UnwrapTokenRequest request = await znnClient.embedded.bridge
@@ -698,15 +740,18 @@ Future<void> _proposeAdmin() async {
   String currentAdmin = (await znnClient.embedded.bridge.getBridgeInfo())
       .administrator
       .toString();
-  Address newAdmin = Address.parse(args[1]);
+  Address newAdmin = parseAddress(args[1]);
+  if (!assertUserAddress(newAdmin)) {
+    return;
+  }
 
   if (currentAdmin == '' ||
       currentAdmin.isEmpty ||
       currentAdmin == emptyAddress.toString()) {
     print('Proposing new bridge administrator ...');
-    AccountBlockTemplate proposeAdministrator =
+    AccountBlockTemplate block =
         znnClient.embedded.bridge.proposeAdministrator(newAdmin);
-    proposeAdministrator = await znnClient.send(proposeAdministrator);
+    await znnClient.send(block);
     print('Done');
   } else {
     print('${red('Permission denied!')} Bridge is not in emergency mode');
@@ -812,24 +857,24 @@ Future<void> _adminFunctions() async {
 Future<void> _emergency() async {
   _isAdmin();
   print('Initializing bridge emergency mode ...');
-  AccountBlockTemplate emergency = znnClient.embedded.bridge.emergency();
-  emergency = await znnClient.send(emergency);
+  AccountBlockTemplate block = znnClient.embedded.bridge.emergency();
+  await znnClient.send(block);
   print('Done');
 }
 
 Future<void> _halt() async {
   _isAdmin();
   print('Halting bridge ...');
-  AccountBlockTemplate halt = znnClient.embedded.bridge.halt('');
-  halt = await znnClient.send(halt);
+  AccountBlockTemplate block = znnClient.embedded.bridge.halt('1');
+  await znnClient.send(block);
   print('Done');
 }
 
 Future<void> _unhalt() async {
   _isAdmin();
   print('Unhalting the bridge ...');
-  AccountBlockTemplate unhalt = znnClient.embedded.bridge.unhalt();
-  unhalt = await znnClient.send(unhalt);
+  AccountBlockTemplate block = znnClient.embedded.bridge.unhalt();
+  await znnClient.send(block);
   print('Done');
 }
 
@@ -845,9 +890,8 @@ Future<void> _enableKeyGen() async {
 Future<void> _disableKeyGen() async {
   _isAdmin();
   print('Disabling TSS key generation ...');
-  AccountBlockTemplate setAllowKeyGen =
-      znnClient.embedded.bridge.setAllowKeyGen(false);
-  setAllowKeyGen = await znnClient.send(setAllowKeyGen);
+  AccountBlockTemplate block = znnClient.embedded.bridge.setAllowKeyGen(false);
+  await znnClient.send(block);
   print('Done');
 }
 
@@ -863,7 +907,7 @@ Future<void> _setTokenPair() async {
 
   int networkClass = int.parse(args[1]);
   int chainId = int.parse(args[2]);
-  TokenStandard tokenStandard = TokenStandard.parse(args[3]);
+  TokenStandard tokenStandard = getTokenStandard(args[3]);
   String tokenAddress = args[4]; // must be EVM-compatible
   bool bridgeable = bool.parse(args[5]);
   bool redeemable = bool.parse(args[6]);
@@ -915,13 +959,13 @@ Future<void> _removeTokenPair() async {
 
   int networkClass = int.parse(args[1]);
   int chainId = int.parse(args[2]);
-  TokenStandard tokenStandard = TokenStandard.parse(args[3]);
+  TokenStandard tokenStandard = getTokenStandard(args[3]);
   String tokenAddress = args[4]; // must be EVM-compatible
 
   print('Removing token pair ...');
-  AccountBlockTemplate removeTokenPair = znnClient.embedded.bridge
+  AccountBlockTemplate block = znnClient.embedded.bridge
       .removeTokenPair(networkClass, chainId, tokenStandard, tokenAddress);
-  removeTokenPair = await znnClient.send(removeTokenPair);
+  await znnClient.send(block);
   print('Done');
 }
 
@@ -934,13 +978,13 @@ Future<void> _revokeUnwrapRequest() async {
     return;
   }
 
-  Hash transactionHash = Hash.parse(args[1]);
+  Hash transactionHash = parseHash(args[1]);
   int logIndex = int.parse(args[2]);
 
-  print('Removing token pair ...');
-  AccountBlockTemplate revokeUnwrapRequest =
+  print('Removing unwrap request ...');
+  AccountBlockTemplate block =
       znnClient.embedded.bridge.revokeUnwrapRequest(transactionHash, logIndex);
-  revokeUnwrapRequest = await znnClient.send(revokeUnwrapRequest);
+  await znnClient.send(block);
   print('Done');
 }
 
@@ -957,21 +1001,64 @@ Future<void> _nominateGuardians() async {
   List<Address> guardians = [];
 
   for (int i = 1; i < args.length; i++) {
-    try {
-      Address guardian = Address.parse(args[i]);
-      if (guardian != emptyAddress) {
-        guardians.add(guardian);
-      }
-    } catch (e) {
-      print('${red('Error!')} ${args[i]} is not a valid address');
+    Address guardian = parseAddress(args[i]);
+    if (!assertUserAddress(guardian)) {
       return;
+    }
+    guardians.add(guardian);
+  }
+
+  List<String> addresses = guardians.map((e) => e.toString()).toSet().toList();
+  addresses.sort();
+
+  if (addresses.length != guardians.length) {
+    print('Duplicate address nomination detected');
+    return;
+  }
+
+  guardians = addresses.map((e) => Address.parse(e)).toList();
+
+  TimeChallengesList list =
+      await znnClient.embedded.bridge.getTimeChallengesInfo();
+  TimeChallengeInfo? tc;
+
+  if (list.count > 0) {
+    for (var _tc in list.list) {
+      if (_tc.methodName == 'NominateGuardians') {
+        tc = _tc;
+      }
     }
   }
 
-  print('Nominating guardians ...');
-  AccountBlockTemplate nominateGuardians =
+  if (tc != null && tc.paramsHash != emptyHash) {
+    Momentum frontierMomentum = await znnClient.ledger.getFrontierMomentum();
+    SecurityInfo securityInfo =
+        await znnClient.embedded.bridge.getSecurityInfo();
+
+    if (tc.challengeStartHeight + securityInfo.administratorDelay >
+        frontierMomentum.height) {
+      print('Cannot nominate guardians; wait for time challenge to expire.');
+      return;
+    }
+
+    ByteData bd = combine(guardians);
+    Hash paramsHash = Hash.digest(bd.buffer.asUint8List());
+
+    if (tc.paramsHash == paramsHash) {
+      print('Committing guardians ...');
+    } else {
+      print('Time challenge hash does not match nominated guardians');
+      if (!confirm('Are you sure you want to nominate new guardians?',
+          defaultValue: false)) return;
+      print('Nominating guardians ...');
+    }
+  } else {
+    print('Nominating guardians ...');
+  }
+
+  AccountBlockTemplate block =
       znnClient.embedded.bridge.nominateGuardians(guardians);
-  nominateGuardians = await znnClient.send(nominateGuardians);
+  await znnClient.send(block);
   print('Done');
 }
 
@@ -984,12 +1071,15 @@ Future<void> _changeAdmin() async {
     return;
   }
 
-  Address newAdmin = Address.parse(args[1]);
+  Address newAdmin = parseAddress(args[1]);
+  if (!assertUserAddress(newAdmin)) {
+    return;
+  }
 
   print('Changing bridge administrator ...');
-  AccountBlockTemplate changeAdministrator =
+  AccountBlockTemplate block =
       znnClient.embedded.bridge.changeAdministrator(newAdmin);
-  changeAdministrator = await znnClient.send(changeAdministrator);
+  await znnClient.send(block);
   print('Done');
 }
 
@@ -1006,9 +1096,9 @@ Future<void> _setMetadata() async {
   jsonDecode(metadata);
 
   print('Setting bridge metadata ...');
-  AccountBlockTemplate setBridgeMetadata =
+  AccountBlockTemplate block =
       znnClient.embedded.bridge.setBridgeMetadata(metadata);
-  setBridgeMetadata = await znnClient.send(setBridgeMetadata);
+  await znnClient.send(block);
   print('Done');
 }
 
@@ -1028,10 +1118,12 @@ Future<void> _setOrchestratorInfo() async {
   int estimatedMomentumTime = int.parse(args[4]);
 
   print('Setting orchestrator info ...');
-  AccountBlockTemplate setOrchestratorInfo = znnClient.embedded.bridge
-      .setOrchestratorInfo(windowSize, keyGenThreshold, confirmationsToFinality,
-          estimatedMomentumTime);
-  setOrchestratorInfo = await znnClient.send(setOrchestratorInfo);
+  AccountBlockTemplate block = znnClient.embedded.bridge.setOrchestratorInfo(
+      windowSize,
+      keyGenThreshold,
+      confirmationsToFinality,
+      estimatedMomentumTime);
+  await znnClient.send(block);
   print('Done');
 }
 
@@ -1053,14 +1145,14 @@ Future<void> _setNetwork() async {
   jsonDecode(metadata);
 
   print('Setting network ...');
-  AccountBlockTemplate setNetwork = znnClient.embedded.bridge.setNetwork(
+  AccountBlockTemplate block = znnClient.embedded.bridge.setNetwork(
     networkClass,
     chainId,
     name,
     contractAddress,
     metadata,
   );
-  setNetwork = await znnClient.send(setNetwork);
+  await znnClient.send(block);
   print('Done');
 }
 
@@ -1077,9 +1169,9 @@ Future<void> _removeNetwork() async {
   int chainId = int.parse(args[2]);
 
   print('Removing network ...');
-  AccountBlockTemplate removeNetwork =
+  AccountBlockTemplate block =
       znnClient.embedded.bridge.removeNetwork(networkClass, chainId);
-  removeNetwork = await znnClient.send(removeNetwork);
+  await znnClient.send(block);
   print('Done');
 }
 
@@ -1098,13 +1190,12 @@ Future<void> _setNetworkMetadata() async {
   jsonDecode(metadata);
 
   print('Setting network metadata ...');
-  AccountBlockTemplate setNetworkMetadata =
-      znnClient.embedded.bridge.setNetworkMetadata(
+  AccountBlockTemplate block = znnClient.embedded.bridge.setNetworkMetadata(
     networkClass,
     chainId,
     metadata,
   );
-  setNetworkMetadata = await znnClient.send(setNetworkMetadata);
+  await znnClient.send(block);
   print('Done');
 }
 
@@ -1128,14 +1219,9 @@ Future<void> _isAdmin() async {
 }
 
 Future<void> _printWrapTokenRequest(WrapTokenRequest request) async {
-  int decimals;
-  if (request.tokenStandard == znnZts || request.tokenStandard == qsrZts) {
-    decimals = coinDecimals;
-  } else {
-    Token token =
-        (await znnClient.embedded.token.getByZts(request.tokenStandard))!;
-    decimals = token.decimals;
-  }
+  Token token = await getToken(request.tokenStandard);
+  int decimals = token.decimals;
+  Function color = getColor(request.tokenStandard);
 
   print('Id: ${request.id}');
   print('   Network Class: ${request.networkClass}');
@@ -1143,8 +1229,9 @@ Future<void> _printWrapTokenRequest(WrapTokenRequest request) async {
   print('   To: ${request.toAddress}');
   print(
       '   From: ${(await znnClient.ledger.getAccountBlockByHash(request.id))?.address}');
-  print('   Token Standard: ${request.tokenStandard}');
-  print('   Amount: ${AmountUtils.addDecimals(request.amount, decimals)}');
+  print('   Token Standard: ${color(request.tokenStandard)}');
+  print(
+      '   Amount: ${AmountUtils.addDecimals(request.amount, decimals)} ${color(token.symbol)}');
   print('   Fee: ${AmountUtils.addDecimals(request.fee, decimals)}');
   print('   Signature: ${request.signature}');
   print('   Creation Momentum Height: ${request.creationMomentumHeight}');
@@ -1152,22 +1239,18 @@ Future<void> _printWrapTokenRequest(WrapTokenRequest request) async {
 }
 
 Future<void> _printUnwrapTokenRequest(UnwrapTokenRequest request) async {
-  int decimals;
-  if (request.tokenStandard == znnZts || request.tokenStandard == qsrZts) {
-    decimals = coinDecimals;
-  } else {
-    Token token =
-        (await znnClient.embedded.token.getByZts(request.tokenStandard))!;
-    decimals = token.decimals;
-  }
+  Token token = await getToken(request.tokenStandard);
+  int decimals = token.decimals;
+  Function color = getColor(request.tokenStandard);
 
   print('Id: ${request.transactionHash}');
   print('   Network Class: ${request.networkClass}');
   print('   Chain Id: ${request.chainId}');
   print('   Log Index: ${request.logIndex}');
   print('   To: ${request.toAddress}');
-  print('   Token Standard: ${request.tokenStandard}');
-  print('   Amount: ${AmountUtils.addDecimals(request.amount, decimals)}');
+  print('   Token Standard: ${color(request.tokenStandard)}');
+  print(
+      '   Amount: ${AmountUtils.addDecimals(request.amount, decimals)} ${color(token.symbol)}');
   print('   Signature: ${request.signature}');
   print(
       '   Registration Momentum Height: ${request.registrationMomentumHeight}');
@@ -1177,16 +1260,9 @@ Future<void> _printUnwrapTokenRequest(UnwrapTokenRequest request) async {
 }
 
 Future<void> _printRedeem(UnwrapTokenRequest request) async {
-  Token token =
-      (await znnClient.embedded.token.getByZts(request.tokenStandard))!;
+  Token token = await getToken(request.tokenStandard);
   int decimals = token.decimals;
-
-  Function color = magenta;
-  if (request.tokenStandard == znnZts) {
-    color = green;
-  } else if (request.tokenStandard == qsrZts) {
-    color = blue;
-  }
+  Function color = getColor(request.tokenStandard);
 
   print('Redeeming id: ${request.transactionHash}');
   print('   Log Index: ${request.logIndex}');

@@ -1,20 +1,20 @@
 import 'dart:convert';
 import 'package:convert/convert.dart';
 import 'package:dcli/dcli.dart' hide verbose;
+import 'package:znn_cli_dart/lib.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
-import 'src.dart';
 
 void generalMenu() {
   print('  ${white('General')}');
   print(
-      '    send toAddress amount [${green('ZNN')}/${blue('QSR')}/${magenta('ZTS')}]');
+      '    send toAddress amount [${green('ZNN')}/${blue('QSR')}/${magenta('ZTS')} message]');
   print('    receive blockHash');
   print('    receiveAll');
   print('    unreceived');
   print('    unconfirmed');
   print('    balance address');
   print('    frontierMomentum');
-  print('    createHash "string" [hashType preimageLength]');
+  print('    createHash [hashType preimageLength]');
   print('    version');
 }
 
@@ -84,36 +84,37 @@ Future<void> generalFunctions() async {
 
 void _version() {
   print('$znnCli v$znnCliVersion using Zenon SDK v$znnSdkVersion');
-  print(getZnndVersion(znnDaemon));
 }
 
 Future<void> _send() async {
-  if (!(args.length == 4 || args.length == 5)) {
+  if (args.length < 3 || args.length > 5) {
     print('Incorrect number of arguments. Expected:');
     print(
-        'send toAddress amount [${green('ZNN')}/${blue('QSR')}/${magenta('ZTS')}]');
+        'send toAddress amount [${green('ZNN')}/${blue('QSR')}/${magenta('ZTS')} message]');
     return;
   }
 
-  Address recipient = Address.parse(args[1]);
-  TokenStandard tokenStandard = getTokenStandard(args[3]);
-  Token token = (await znnClient.embedded.token.getByZts(tokenStandard))!;
+  Address recipient = parseAddress(args[1]);
+  TokenStandard tokenStandard =
+      args.length > 3 ? getTokenStandard(args[3]) : znnZts;
+  Token token = await getToken(tokenStandard);
   BigInt amount =
       AmountUtils.extractDecimals(num.parse(args[2]), token.decimals);
+  Function color = getColor(tokenStandard);
 
-  if (!await hasBalance(znnClient, address, tokenStandard, amount)) {
+  if (!await hasBalance(address, tokenStandard, amount)) {
     return;
   }
 
   var block = AccountBlockTemplate.send(recipient, tokenStandard, amount);
 
   if (args.length == 5) {
-    block.data = AsciiEncoder().convert(args[4]);
+    block.data = utf8.encode(args[4]);
     print(
-        'Sending ${AmountUtils.addDecimals(amount, token.decimals)} ${token.symbol} to ${args[1]} with a message "${args[4]}"');
+        'Sending ${AmountUtils.addDecimals(amount, token.decimals)} ${color(token.symbol)} to ${args[1]} with a message "${args[4]}"');
   } else {
     print(
-        'Sending ${AmountUtils.addDecimals(amount, token.decimals)} ${token.symbol} to ${args[1]}');
+        'Sending ${AmountUtils.addDecimals(amount, token.decimals)} ${color(token.symbol)} to ${args[1]}');
   }
 
   await znnClient.send(block);
@@ -126,7 +127,7 @@ Future<void> _receive() async {
     print('receive blockHash');
     return;
   }
-  Hash sendBlockHash = Hash.parse(args[1]);
+  Hash sendBlockHash = parseHash(args[1]);
   print('Please wait ...');
   await znnClient.send(AccountBlockTemplate.receive(sendBlockHash));
   print('Done');
@@ -175,7 +176,7 @@ Future<void> _autoreceive() async {
           var hash = tx['hash'];
           print('receiving transaction with hash $hash');
           var template = await znnClient
-              .send(AccountBlockTemplate.receive(Hash.parse(hash)));
+              .send(AccountBlockTemplate.receive(parseHash(hash)));
           print(
               'successfully received $hash. Receive-block-hash ${template.hash}');
           await Future.delayed(Duration(seconds: 1));
@@ -237,7 +238,7 @@ Future<void> _balance() async {
     return;
   }
 
-  Address address = Address.parse(args[1]);
+  Address address = parseAddress(args[1]);
 
   AccountInfo info = await znnClient.ledger.getAccountInfoByAddress(address);
   print(
@@ -316,11 +317,11 @@ Future<void> _createHash() async {
   switch (hashType) {
     case 1:
       hash = Hash.fromBytes(await Crypto.sha256Bytes(preimage));
-      print('SHA-256 Hash: $hash');
+      print('SHA2-256 Hash: $hash');
       return;
     default:
       hash = Hash.digest(preimage);
-      print('SHA-3 Hash: $hash');
+      print('SHA3-256 Hash: $hash');
       return;
   }
 }

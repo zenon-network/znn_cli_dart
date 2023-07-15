@@ -1,6 +1,6 @@
 import 'package:dcli/dcli.dart' hide verbose;
+import 'package:znn_cli_dart/lib.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
-import 'src.dart';
 
 void sporkMenu() {
   print('  ${white('Spork')}');
@@ -42,6 +42,9 @@ Future<void> _list() async {
   if (args.length == 3) {
     pageIndex = int.parse(args[1]);
     pageSize = int.parse(args[2]);
+  }
+  if (!areValidPageVars(pageIndex, pageSize)) {
+    return;
   }
 
   SporkList sporks = await znnClient.embedded.spork
@@ -99,7 +102,7 @@ Future<void> _activate() async {
     return;
   }
 
-  Hash id = Hash.parse(args[1]);
+  Hash id = parseHash(args[1]);
   print('Activating spork...');
   await znnClient.send(znnClient.embedded.spork.activateSpork(id));
   print('Done');

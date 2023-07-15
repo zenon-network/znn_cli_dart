@@ -1,6 +1,6 @@
 import 'package:dcli/dcli.dart' hide verbose;
+import 'package:znn_cli_dart/lib.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
-import 'src.dart';
 
 void pillarMenu() {
   print('  ${white('Pillar')}');
@@ -84,8 +84,15 @@ Future<void> _register() async {
     return;
   }
 
+  Address producerAddress = parseAddress(args[2]);
+  Address rewardAddress = parseAddress(args[3]);
   int giveBlockRewardPercentage = int.parse(args[4]);
   int giveDelegateRewardPercentage = int.parse(args[5]);
+
+  if (!assertUserAddress(producerAddress) ||
+      !assertUserAddress(rewardAddress)) {
+    return;
+  }
 
   AccountInfo balance = await znnClient.ledger.getAccountInfoByAddress(address);
   BigInt qsrAmount = await znnClient.embedded.pillar.getQsrRegistrationCost();
@@ -122,8 +129,8 @@ Future<void> _register() async {
   print('Registering Pillar ...');
   await znnClient.send(znnClient.embedded.pillar.register(
       newName,
-      Address.parse(args[2]),
-      Address.parse(args[3]),
+      producerAddress,
+      rewardAddress,
       giveBlockRewardPercentage,
       giveDelegateRewardPercentage));
   print('Done');

@@ -1,6 +1,6 @@
 import 'package:dcli/dcli.dart' hide verbose;
+import 'package:znn_cli_dart/lib.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
-import 'src.dart';
 
 void acceleratorMenu() {
   print('  ${white('Accelerator Z')}');
@@ -35,20 +35,20 @@ Future<void> _donate() async {
     return;
   }
 
-  Token token = (await znnClient.embedded.token.getByZts(tokenStandard))!;
+  Token token = await getToken(tokenStandard);
   BigInt amount =
       AmountUtils.extractDecimals(num.parse(args[1]), token.decimals);
-  if (amount == BigInt.zero) {
+  if (amount <= BigInt.zero) {
     print('${red('Error!')} You cannot send that amount.');
     return;
   }
 
-  if (!await hasBalance(znnClient, address, tokenStandard, amount)) {
+  if (!await hasBalance(address, tokenStandard, amount)) {
     return;
   }
 
   print(
-      'Donating ${AmountUtils.addDecimals(amount, token.decimals)} ${token.symbol} to Accelerator Z ...');
+      'Donating ${AmountUtils.addDecimals(amount, token.decimals)} ${token.symbol} to Accelerator-Z ...');
   await znnClient
       .send(znnClient.embedded.accelerator.donate(amount, tokenStandard));
 
