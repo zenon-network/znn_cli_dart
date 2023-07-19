@@ -3,7 +3,7 @@ import 'package:znn_cli_dart/lib.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 void acceleratorMenu() {
-  print('  ${white('Accelerator Z')}');
+  print('  ${white('Accelerator-Z')}');
   print('    az.donate amount ${green('ZNN')}/${blue('QSR')}');
 }
 
