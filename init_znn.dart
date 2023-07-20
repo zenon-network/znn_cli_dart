@@ -1,10 +1,9 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
-import 'dart:math';
 
+import 'package:args/args.dart';
 import 'package:dcli/dcli.dart';
-import 'package:logging/logging.dart';
 import 'package:path/path.dart' as path;
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
@@ -20,7 +19,7 @@ void help() {
   print('USAGE:');
   print('  $znnCli [OPTIONS] [FLAGS]\n');
   print('FLAGS:');
-  print(_argsUsage + '\n');
+  print('$_argsUsage\n');
   print('OPTIONS:');
   print('  General');
   print(
@@ -96,6 +95,8 @@ Future<int> initZnn(List<String> args, Function handler) async {
       help: 'Select the local keyStore');
   argParser.addOption('index',
       abbr: 'i', defaultsTo: '0', help: 'Address index');
+  argParser.addOption('chainid',
+      abbr: 'c', defaultsTo: '1', help: 'Provide a chain identifier');
 
   // Flags
   argParser.addFlag('verbose',
@@ -117,8 +118,12 @@ Future<int> initZnn(List<String> args, Function handler) async {
     return 0;
   }
 
+  if (argResult.wasParsed('chainid')) {
+    setChainIdentifier(chainIdentifier: int.parse(argResult['chainid']));
+  }
+
   if (argResult.wasParsed('verbose')) {
-    logger.level = Level.INFO;
+    logger.level = Level.ALL;
   }
 
   ensureDirectoriesExist();
@@ -222,7 +227,7 @@ Future<int> initZnn(List<String> args, Function handler) async {
     if (argResult.wasParsed('passphrase')) {
       passphrase = argResult['passphrase'];
     } else {
-      print("Insert passphrase:");
+      print('Insert passphrase:');
       stdin.echoMode = false;
       passphrase = stdin.readLineSync();
       stdin.echoMode = true;
@@ -237,7 +242,7 @@ Future<int> initZnn(List<String> args, Function handler) async {
           .readKeyStore(passphrase!, keyStoreFile);
       znnClient.defaultKeyStorePath = keyStoreFile;
     } on Exception catch (e) {
-      if (e == IncorrectPasswordException) {
+      if (e.runtimeType == IncorrectPasswordException) {
         print('${red('Error!')} Invalid passphrase for keyStore $keyStoreFile');
       } else {
         rethrow;
@@ -249,17 +254,17 @@ Future<int> initZnn(List<String> args, Function handler) async {
     logger.info('Using address ${green(address.toString())}');
   }
 
-  String? _urlOption;
+  String? urlOption;
   bool urlOptionSupplied = false;
 
   if (argResult.wasParsed('url') && validateWsConnectionURL(argResult['url'])) {
-    _urlOption = argResult['url'];
+    urlOption = argResult['url'];
     urlOptionSupplied = true;
   } else if (!validateWsConnectionURL(argResult['url'])) {
     print('${red('Error!')} Malformed URL. Please try again');
     exit(-1);
   } else {
-    _urlOption = 'ws://127.0.0.1:$defaultWsPort';
+    urlOption = 'ws://127.0.0.1:$defaultWsPort';
   }
 
   if (!commandsWithoutConnection.contains(args[0]) ||
@@ -269,7 +274,7 @@ Future<int> initZnn(List<String> args, Function handler) async {
       exit(-1);
     }
 
-    await znnClient.wsClient.initialize(_urlOption!, retry: false);
+    await znnClient.wsClient.initialize(urlOption!, retry: false);
   }
 
   await handler(args);
@@ -283,10 +288,6 @@ String formatJSON(Map<dynamic, dynamic> j) {
   var spaces = ' ' * 4;
   var encoder = JsonEncoder.withIndent(spaces);
   return encoder.convert(j);
-}
-
-String formatAmount(int amount, int decimals) {
-  return (amount / pow(10, decimals)).toStringAsFixed(decimals);
 }
 
 String formatDuration(int seconds) {
@@ -346,7 +347,7 @@ bool isZnndRunning(String executableName) {
 String getZnndVersion() {
   switch (Platform.operatingSystem) {
     case 'linux':
-      return Process.runSync('./' + znnDaemon, ['-v'], runInShell: true)
+      return Process.runSync('./$znnDaemon', ['-v'], runInShell: true)
           .stdout
           .toString();
     case 'windows':
@@ -354,7 +355,7 @@ String getZnndVersion() {
           .stdout
           .toString();
     case 'macos':
-      return Process.runSync('./' + znnDaemon, ['-v'], runInShell: true)
+      return Process.runSync('./$znnDaemon', ['-v'], runInShell: true)
           .stdout
           .toString();
     default:

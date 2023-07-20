@@ -36,7 +36,7 @@ Future<void> handleCli(List<String> args) async {
         break;
       }
       Address newAddress = Address.parse(args[1]);
-      late int amount;
+      late BigInt amount;
       TokenStandard tokenStandard;
       if (args[3] == 'znn' || args[3] == 'ZNN') {
         tokenStandard = znnZts;
@@ -52,11 +52,11 @@ Future<void> handleCli(List<String> args) async {
       bool found = false;
       for (BalanceInfoListItem entry in info.balanceInfoList!) {
         if (entry.token!.tokenStandard.toString() == tokenStandard.toString()) {
-          amount =
-              (double.parse(args[2]) * entry.token!.decimalsExponent()).round();
+          amount = AmountUtils.extractDecimals(
+              num.parse(args[2]), entry.token!.decimals);
           if (entry.balance! < amount) {
             print(
-                '${red("Error!")} You only have ${formatAmount(entry.balance!, entry.token!.decimals)} ${entry.token!.symbol} tokens');
+                '${red("Error!")} You only have ${AmountUtils.addDecimals(entry.balance!, entry.token!.decimals)} ${entry.token!.symbol} tokens');
             ok = false;
             break;
           }
@@ -67,7 +67,7 @@ Future<void> handleCli(List<String> args) async {
       if (!ok) break;
       if (!found) {
         print(
-            '${red("Error!")} You only have ${formatAmount(0, 0)} ${tokenStandard.toString()} tokens');
+            '${red("Error!")} You only have ${AmountUtils.addDecimals(BigInt.zero, 0)} ${tokenStandard.toString()} tokens');
         break;
       }
       Token? token = await znnClient.embedded.token.getByZts(tokenStandard);
@@ -76,10 +76,10 @@ Future<void> handleCli(List<String> args) async {
       if (args.length == 5) {
         block.data = AsciiEncoder().convert(args[4]);
         print(
-            'Sending ${formatAmount(amount, token!.decimals)} ${args[3]} to ${args[1]} with a message "${args[4]}"');
+            'Sending ${AmountUtils.addDecimals(amount, token!.decimals)} ${args[3]} to ${args[1]} with a message "${args[4]}"');
       } else {
         print(
-            'Sending ${formatAmount(amount, token!.decimals)} ${args[3]} to ${args[1]}');
+            'Sending ${AmountUtils.addDecimals(amount, token!.decimals)} ${args[3]} to ${args[1]}');
       }
 
       await znnClient.send(block);
@@ -184,7 +184,7 @@ Future<void> handleCli(List<String> args) async {
 
       for (var block in unreceived.list!) {
         print(
-            'Unreceived ${formatAmount(block.amount, block.token!.decimals)} ${block.token!.symbol} from ${block.address.toString()}. Use the hash ${block.hash} to receive');
+            'Unreceived ${AmountUtils.addDecimals(block.amount, block.token!.decimals)} ${block.token!.symbol} from ${block.address.toString()}. Use the hash ${block.hash} to receive');
       }
       break;
 
@@ -226,7 +226,7 @@ Future<void> handleCli(List<String> args) async {
       }
       for (BalanceInfoListItem entry in info.balanceInfoList!) {
         print(
-            '  ${formatAmount(entry.balance!, entry.token!.decimals)} ${entry.token!.symbol} '
+            '  ${AmountUtils.addDecimals(entry.balance!, entry.token!.decimals)} ${entry.token!.symbol} '
             '${entry.token!.domain} ${entry.token!.tokenStandard.toString()}');
       }
       break;
@@ -254,17 +254,18 @@ Future<void> handleCli(List<String> args) async {
         break;
       }
       Address beneficiary = Address.parse(args[1]);
-      int amount = (double.parse(args[2]) * oneQsr).round();
+      BigInt amount = AmountUtils.extractDecimals(
+          num.parse(args[2] * oneQsr), coinDecimals);
       if (amount < fuseMinQsrAmount) {
         print(
-            '${red('Invalid amount')}: ${formatAmount(amount, qsrDecimals)} ${blue('QSR')}. Minimum staking amount is ${formatAmount(fuseMinQsrAmount, qsrDecimals)}');
+            '${red('Invalid amount')}: ${AmountUtils.addDecimals(amount, coinDecimals)} ${blue('QSR')}. Minimum amount for fusing is ${AmountUtils.addDecimals(fuseMinQsrAmount, coinDecimals)}');
         break;
-      } else if (amount % oneQsr != 0) {
+      } else if (amount % BigInt.from(oneQsr) != BigInt.zero) {
         print('${red('Error!')} Amount has to be integer');
-        break;
+         break;
       }
       print(
-          'Fusing ${formatAmount(amount, qsrDecimals)} ${blue('QSR')} to ${args[1]}');
+          'Fusing ${AmountUtils.addDecimals(amount, coinDecimals)} ${blue('QSR')} to ${args[1]}');
       await znnClient.send(znnClient.embedded.plasma.fuse(beneficiary, amount));
       print('Done');
       break;
@@ -278,7 +279,7 @@ Future<void> handleCli(List<String> args) async {
       PlasmaInfo plasmaInfo = await znnClient.embedded.plasma.get(address!);
       print(
           '${green(address.toString())} has ${plasmaInfo.currentPlasma} / ${plasmaInfo.maxPlasma}'
-          ' plasma with ${formatAmount(plasmaInfo.qsrAmount, qsrDecimals)} ${blue('QSR')} fused.');
+          ' plasma with ${AmountUtils.addDecimals(plasmaInfo.qsrAmount, coinDecimals)} ${blue('QSR')} fused.');
       break;
 
     case 'plasma.list':
@@ -299,14 +300,14 @@ Future<void> handleCli(List<String> args) async {
 
       if (fusionEntryList.count > 0) {
         print(
-            'Fusing ${formatAmount(fusionEntryList.qsrAmount, qsrDecimals)} ${blue('QSR')} for Plasma in ${fusionEntryList.count} entries');
+            'Fusing ${AmountUtils.addDecimals(fusionEntryList.qsrAmount, coinDecimals)} ${blue('QSR')} for Plasma in ${fusionEntryList.count} entries');
       } else {
         print('No Plasma fusion entries found');
       }
 
       for (FusionEntry entry in fusionEntryList.list) {
         print(
-            '  ${formatAmount(entry.qsrAmount, qsrDecimals)} ${blue('QSR')} for ${entry.beneficiary.toString()}');
+            '  ${AmountUtils.addDecimals(entry.qsrAmount, coinDecimals)} ${blue('QSR')} for ${entry.beneficiary.toString()}');
         print(
             'Can be canceled at momentum height: ${entry.expirationHeight}. Use id ${entry.id} to cancel');
       }
@@ -395,9 +396,9 @@ Future<void> handleCli(List<String> args) async {
           accountInfo.qsr()! < sentinelRegisterQsrAmount) {
         print('Cannot register Sentinel with address ${address.toString()}');
         print(
-            'Required ${formatAmount(sentinelRegisterZnnAmount, znnDecimals)} ${green('ZNN')} and ${formatAmount(sentinelRegisterQsrAmount, qsrDecimals)} ${blue('QSR')}');
+            'Required ${AmountUtils.addDecimals(sentinelRegisterZnnAmount, coinDecimals)} ${green('ZNN')} and ${AmountUtils.addDecimals(sentinelRegisterQsrAmount, coinDecimals)} ${blue('QSR')}');
         print(
-            'Available ${formatAmount(accountInfo.znn()!, znnDecimals)} ${green('ZNN')} and ${formatAmount(accountInfo.qsr()!, qsrDecimals)} ${blue('QSR')}');
+            'Available ${AmountUtils.addDecimals(accountInfo.znn()!, coinDecimals)} ${green('ZNN')} and ${AmountUtils.addDecimals(accountInfo.qsr()!, coinDecimals)} ${blue('QSR')}');
         break;
       }
 
@@ -420,10 +421,9 @@ Future<void> handleCli(List<String> args) async {
       SentinelInfo? entry = await znnClient.embedded.sentinel
           .getByOwner(address!)
           .catchError((e) {
+        print("Error: ${e.toString()}");
         if (e.toString().contains('data non existent')) {
           return null;
-        } else {
-          print("Error: ${e.toString()}");
         }
       });
 
@@ -463,14 +463,14 @@ Future<void> handleCli(List<String> args) async {
         break;
       }
 
-      int? depositedQsr =
+      BigInt? depositedQsr =
           await znnClient.embedded.sentinel.getDepositedQsr(address!);
-      if (depositedQsr == 0) {
+      if (depositedQsr == BigInt.zero) {
         print('No deposited ${blue('QSR')} to withdraw');
         break;
       }
       print(
-          'Withdrawing ${formatAmount(depositedQsr, qsrDecimals)} ${blue('QSR')} ...');
+          'Withdrawing ${AmountUtils.addDecimals(depositedQsr, coinDecimals)} ${blue('QSR')} ...');
       await znnClient.send(znnClient.embedded.sentinel.withdrawQsr());
       print('Done');
       break;
@@ -503,7 +503,7 @@ Future<void> handleCli(List<String> args) async {
 
       for (StakeEntry entry in stakeList.list) {
         print(
-            'Stake id ${entry.id.toString()} with amount ${formatAmount(entry.amount, znnDecimals)} ${green('ZNN')}');
+            'Stake id ${entry.id.toString()} with amount ${AmountUtils.addDecimals(entry.amount, coinDecimals)} ${green('ZNN')}');
         if (entry.expirationTimestamp > currentTime) {
           print(
               '    Can be revoked in ${formatDuration(entry.expirationTimestamp - currentTime)}');
@@ -519,7 +519,8 @@ Future<void> handleCli(List<String> args) async {
         print('stake.register amount duration (in months)');
         break;
       }
-      final amount = (double.parse(args[1]) * oneZnn).round();
+      BigInt amount = AmountUtils.extractDecimals(
+          num.parse(args[1]) * oneZnn, coinDecimals);
       final duration = int.parse(args[2]);
       if (duration < 1 || duration > 12) {
         print(
@@ -528,7 +529,7 @@ Future<void> handleCli(List<String> args) async {
       }
       if (amount < stakeMinZnnAmount) {
         print(
-            '${red('Invalid amount')}: ${formatAmount(amount, znnDecimals)} ${green('ZNN')}. Minimum staking amount is ${formatAmount(stakeMinZnnAmount, znnDecimals)}');
+            '${red('Invalid amount')}: ${AmountUtils.addDecimals(amount, coinDecimals)} ${green('ZNN')}. Minimum staking amount is ${AmountUtils.addDecimals(stakeMinZnnAmount, coinDecimals)}');
         break;
       }
       AccountInfo balance =
@@ -539,7 +540,7 @@ Future<void> handleCli(List<String> args) async {
       }
 
       print(
-          'Staking ${formatAmount(amount, znnDecimals)} ${green('ZNN')} for $duration $stakeUnitDurationName(s)');
+          'Staking ${AmountUtils.addDecimals(amount, coinDecimals)} ${green('ZNN')} for $duration $stakeUnitDurationName(s)');
       await znnClient.send(
           znnClient.embedded.stake.stake(stakeTimeUnitSec * duration, amount));
       print('Done');
@@ -612,7 +613,7 @@ Future<void> handleCli(List<String> args) async {
       PillarInfoList pillarList = (await znnClient.embedded.pillar.getAll());
       for (PillarInfo pillar in pillarList.list) {
         print(
-            '#${pillar.rank + 1} Pillar ${green(pillar.name)} has a delegated weight of ${formatAmount(pillar.weight, znnDecimals)} ${green('ZNN')}');
+            '#${pillar.rank + 1} Pillar ${green(pillar.name)} has a delegated weight of ${AmountUtils.addDecimals(pillar.weight, coinDecimals)} ${green('ZNN')}');
         print('    Producer address ${pillar.producerAddress}');
         print(
             '    Momentums ${pillar.currentStats.producedMomentums} / expected ${pillar.currentStats.expectedMomentums}');
@@ -632,18 +633,18 @@ Future<void> handleCli(List<String> args) async {
 
       AccountInfo balance =
           await znnClient.ledger.getAccountInfoByAddress(address!);
-      int? qsrAmount =
+      BigInt? qsrAmount =
           (await znnClient.embedded.pillar.getQsrRegistrationCost());
-      int? depositedQsr =
+      BigInt? depositedQsr =
           await znnClient.embedded.pillar.getDepositedQsr(address);
       if ((balance.znn()! < pillarRegisterZnnAmount ||
               balance.qsr()! < qsrAmount) &&
           qsrAmount > depositedQsr) {
         print('Cannot register Pillar with address ${address.toString()}');
         print(
-            'Required ${formatAmount(pillarRegisterZnnAmount, znnDecimals)} ${green('ZNN')} and ${formatAmount(qsrAmount, qsrDecimals)} ${blue('QSR')}');
+            'Required ${AmountUtils.addDecimals(pillarRegisterZnnAmount, coinDecimals)} ${green('ZNN')} and ${AmountUtils.addDecimals(qsrAmount, coinDecimals)} ${blue('QSR')}');
         print(
-            'Available ${formatAmount(balance.znn()!, znnDecimals)} ${green('ZNN')} and ${formatAmount(balance.qsr()!, qsrDecimals)} ${blue('QSR')}');
+            'Available ${AmountUtils.addDecimals(balance.znn()!, coinDecimals)} ${green('ZNN')} and ${AmountUtils.addDecimals(balance.qsr()!, coinDecimals)} ${blue('QSR')}');
         break;
       }
 
@@ -661,7 +662,7 @@ Future<void> handleCli(List<String> args) async {
       }
       if (depositedQsr < qsrAmount) {
         print(
-            'Depositing ${formatAmount(qsrAmount - depositedQsr, qsrDecimals)} ${blue('QSR')} for the Pillar registration');
+            'Depositing ${AmountUtils.addDecimals(qsrAmount - depositedQsr, coinDecimals)} ${blue('QSR')} for the Pillar registration');
         await znnClient.send(
             znnClient.embedded.pillar.depositQsr(qsrAmount - depositedQsr));
       }
@@ -747,14 +748,14 @@ Future<void> handleCli(List<String> args) async {
         print('pillar.withdrawQsr');
         break;
       }
-      int? depositedQsr =
+      BigInt? depositedQsr =
           await znnClient.embedded.pillar.getDepositedQsr(address!);
-      if (depositedQsr == 0) {
+      if (depositedQsr == BigInt.zero) {
         print('No deposited ${blue('QSR')} to withdraw');
         break;
       }
       print(
-          'Withdrawing ${formatAmount(depositedQsr, qsrDecimals)} ${blue('QSR')} ...');
+          'Withdrawing ${AmountUtils.addDecimals(depositedQsr, coinDecimals)} ${blue('QSR')} ...');
       await znnClient.send(znnClient.embedded.pillar.withdrawQsr());
       print('Done');
       break;
@@ -782,7 +783,7 @@ Future<void> handleCli(List<String> args) async {
           print(
               '   ${token.tokenStandard == znnZts ? green(token.name) : blue(token.name)} has ${token.decimals} decimals, ${token.isMintable ? 'is mintable' : 'is not mintable'}, ${token.isBurnable ? 'can be burned' : 'cannot be burned'}, and ${token.isUtility ? 'is a utility coin' : 'is not a utility coin'}');
           print(
-              '   The total supply is ${formatAmount(token.totalSupply, token.decimals)} and the maximum supply is ${formatAmount(token.maxSupply, token.decimals)}');
+              '   The total supply is ${AmountUtils.addDecimals(token.totalSupply, token.decimals)} and the maximum supply is ${AmountUtils.addDecimals(token.maxSupply, token.decimals)}');
         } else {
           print(
               'Token ${token.name} with symbol ${token.symbol} and standard ${magenta(token.tokenStandard.toString())}');
@@ -811,7 +812,7 @@ Future<void> handleCli(List<String> args) async {
           '$type ${token.name} with symbol ${token.symbol} and standard ${token.tokenStandard.toString()}');
       print('   Created by ${green(token.owner.toString())}');
       print(
-          '   The total supply is ${formatAmount(token.totalSupply, token.decimals)} and a maximum supply is ${formatAmount(token.maxSupply, token.decimals)}');
+          '   The total supply is ${AmountUtils.addDecimals(token.totalSupply, token.decimals)} and a maximum supply is ${AmountUtils.addDecimals(token.maxSupply, token.decimals)}');
       print(
           '   The token has ${token.decimals} decimals ${token.isMintable ? 'can be minted' : 'cannot be minted'} and ${token.isBurnable ? 'can be burned' : 'cannot be burned'}');
       break;
@@ -836,7 +837,7 @@ Future<void> handleCli(List<String> args) async {
             '$type ${token.name} with symbol ${token.symbol} and standard ${token.tokenStandard.toString()}');
         print('   Created by ${green(token.owner.toString())}');
         print(
-            '   The total supply is ${formatAmount(token.totalSupply, token.decimals)} and a maximum supply is ${formatAmount(token.maxSupply, token.decimals)}');
+            '   The total supply is ${AmountUtils.addDecimals(token.totalSupply, token.decimals)} and a maximum supply is ${AmountUtils.addDecimals(token.maxSupply, token.decimals)}');
         print(
             '   The token ${token.decimals} decimals ${token.isMintable ? 'can be minted' : 'cannot be minted'} and ${token.isBurnable ? 'can be burned' : 'cannot be burned'}');
       }
@@ -928,8 +929,10 @@ Future<void> handleCli(List<String> args) async {
         break;
       }
 
-      int totalSupply = int.parse(args[4]);
-      int maxSupply = int.parse(args[5]);
+      BigInt totalSupply =
+          AmountUtils.extractDecimals(num.parse(args[4]), coinDecimals);
+      BigInt maxSupply =
+          AmountUtils.extractDecimals(num.parse(args[5]), coinDecimals);
       int decimals = int.parse(args[6]);
 
       if (mintable == true) {
@@ -938,9 +941,8 @@ Future<void> handleCli(List<String> args) async {
               '${red("Error!")} Max supply must to be larger than the total supply');
           break;
         }
-        if (maxSupply > (1 << 53)) {
-          print(
-              '${red("Error!")} Max supply must to be less than ${((1 << 53)) - 1}');
+        if (maxSupply > kBigP255m1) {
+          print('${red("Error!")} Max supply must to be less than $kBigP255m1');
           break;
         }
       } else {
@@ -949,7 +951,7 @@ Future<void> handleCli(List<String> args) async {
               '${red("Error!")} Max supply must be equal to totalSupply for non-mintable tokens');
           break;
         }
-        if (totalSupply == 0) {
+        if (totalSupply == BigInt.zero) {
           print(
               '${red("Error!")} Total supply cannot be "0" for non-mintable tokens');
           break;
@@ -980,7 +982,8 @@ Future<void> handleCli(List<String> args) async {
         break;
       }
       TokenStandard tokenStandard = TokenStandard.parse(args[1]);
-      int amount = int.parse(args[2]);
+      BigInt amount =
+          AmountUtils.extractDecimals(num.parse(args[2]), coinDecimals);
       Address mintAddress = Address.parse(args[3]);
 
       Token? token = await znnClient.embedded.token.getByZts(tokenStandard);
@@ -993,8 +996,8 @@ Future<void> handleCli(List<String> args) async {
       }
 
       print('Minting ZTS token ...');
-      await znnClient.send(
-          znnClient.embedded.token.mintToken(tokenStandard, amount, mintAddress));
+      await znnClient.send(znnClient.embedded.token
+          .mintToken(tokenStandard, amount, mintAddress));
       print('Done');
       break;
 
@@ -1005,7 +1008,8 @@ Future<void> handleCli(List<String> args) async {
         break;
       }
       TokenStandard tokenStandard = TokenStandard.parse(args[1]);
-      int amount = int.parse(args[2]);
+      BigInt amount =
+          AmountUtils.extractDecimals(num.parse(args[2]), coinDecimals);
       AccountInfo info =
           await znnClient.ledger.getAccountInfoByAddress(address!);
       bool ok = true;
@@ -1013,7 +1017,7 @@ Future<void> handleCli(List<String> args) async {
         if (entry.token!.tokenStandard.toString() == tokenStandard.toString() &&
             entry.balance! < amount) {
           print(
-              '${red("Error!")} You only have ${formatAmount(entry.balance!, entry.token!.decimals)} ${entry.token!.symbol} tokens');
+              '${red("Error!")} You only have ${AmountUtils.addDecimals(entry.balance!, entry.token!.decimals)} ${entry.token!.symbol} tokens');
           ok = false;
           break;
         }
