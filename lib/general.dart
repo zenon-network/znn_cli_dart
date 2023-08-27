@@ -98,8 +98,7 @@ Future<void> _send() async {
   TokenStandard tokenStandard =
       args.length > 3 ? getTokenStandard(args[3]) : znnZts;
   Token token = await getToken(tokenStandard);
-  BigInt amount =
-      AmountUtils.extractDecimals(num.parse(args[2]), token.decimals);
+  BigInt amount = AmountUtils.extractDecimals(args[2], token.decimals);
   Function color = getColor(tokenStandard);
 
   if (!await hasBalance(address, tokenStandard, amount)) {

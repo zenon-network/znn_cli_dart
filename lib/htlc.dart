@@ -89,8 +89,7 @@ Future<void> _create() async {
   Address hashLockedAddress;
   TokenStandard tokenStandard = getTokenStandard(args[2]);
   Token token = await getToken(tokenStandard);
-  BigInt amount =
-      AmountUtils.extractDecimals(num.parse(args[3]), token.decimals);
+  BigInt amount = AmountUtils.extractDecimals(args[3], token.decimals);
   Function color = getColor(tokenStandard);
   int expirationTime;
   late Hash hashLock;

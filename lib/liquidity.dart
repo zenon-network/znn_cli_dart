@@ -284,8 +284,7 @@ Future<void> _stake() async {
   int duration = months * stakeTimeUnitSec;
   TokenStandard tokenStandard = getTokenStandard(args[3]);
   Token token = await getToken(tokenStandard);
-  BigInt amount =
-      AmountUtils.extractDecimals(num.parse(args[2]), token.decimals);
+  BigInt amount = AmountUtils.extractDecimals(args[2], token.decimals);
 
   if (duration < stakeTimeMinSec ||
       duration > stakeTimeMaxSec ||

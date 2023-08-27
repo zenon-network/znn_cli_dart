@@ -346,8 +346,7 @@ Future<void> _wrapToken() async {
   String toAddress = args[3]; // must be EVM-compatible
   TokenStandard tokenStandard = getTokenStandard(args[5]);
   Token token = await getToken(tokenStandard);
-  BigInt amount =
-      AmountUtils.extractDecimals(num.parse(args[4]), token.decimals);
+  BigInt amount = AmountUtils.extractDecimals(args[4], token.decimals);
 
   if (amount <= BigInt.zero) {
     print('${red('Error!')} You cannot send that amount.');

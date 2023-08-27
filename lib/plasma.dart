@@ -104,7 +104,7 @@ Future<void> _fuse() async {
     return;
   }
   Address beneficiary = parseAddress(args[1]);
-  BigInt amount = AmountUtils.extractDecimals(num.parse(args[2]), coinDecimals);
+  BigInt amount = AmountUtils.extractDecimals(args[2], coinDecimals);
 
   if (!assertUserAddress(beneficiary)) {
     return;

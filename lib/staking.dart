@@ -82,16 +82,16 @@ Future<void> _register() async {
     print('stake.register amount duration (in months)');
     return;
   }
-  BigInt amount = AmountUtils.extractDecimals(num.parse(args[1]), coinDecimals);
+  BigInt amount = AmountUtils.extractDecimals(args[1], coinDecimals);
   final duration = int.parse(args[2]);
   if (duration < 1 || duration > 12) {
     print(
         '${red('Invalid duration')}: ($duration) $stakeUnitDurationName. It must be between 1 and 12');
     return;
   }
-  if (amount < stakeMinAmount) {
+  if (amount < stakeMinZnnAmount) {
     print(
-        '${red('Invalid amount')}: ${AmountUtils.addDecimals(amount, coinDecimals)} ${green('ZNN')}. Minimum staking amount is ${AmountUtils.addDecimals(stakeMinAmount, coinDecimals)}');
+        '${red('Invalid amount')}: ${AmountUtils.addDecimals(amount, coinDecimals)} ${green('ZNN')}. Minimum staking amount is ${AmountUtils.addDecimals(stakeMinZnnAmount, coinDecimals)}');
     return;
   }
   AccountInfo balance = await znnClient.ledger.getAccountInfoByAddress(address);

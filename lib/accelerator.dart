@@ -36,8 +36,7 @@ Future<void> _donate() async {
   }
 
   Token token = await getToken(tokenStandard);
-  BigInt amount =
-      AmountUtils.extractDecimals(num.parse(args[1]), token.decimals);
+  BigInt amount = AmountUtils.extractDecimals(args[1], token.decimals);
   if (amount <= BigInt.zero) {
     print('${red('Error!')} You cannot send that amount.');
     return;
