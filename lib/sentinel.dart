@@ -94,9 +94,9 @@ Future<void> _register() async {
       accountInfo.qsr()! < sentinelRegisterQsrAmount) {
     print('Cannot register Sentinel with address ${address.toString()}');
     print(
-        'Required ${AmountUtils.addDecimals(sentinelRegisterZnnAmount, coinDecimals)} ${green('ZNN')} and ${AmountUtils.addDecimals(sentinelRegisterQsrAmount, coinDecimals)} ${blue('QSR')}');
+        'Required ${sentinelRegisterZnnAmount.addDecimals(coinDecimals)} ${green('ZNN')} and ${sentinelRegisterQsrAmount.addDecimals(coinDecimals)} ${blue('QSR')}');
     print(
-        'Available ${AmountUtils.addDecimals(accountInfo.znn()!, coinDecimals)} ${green('ZNN')} and ${AmountUtils.addDecimals(accountInfo.qsr()!, coinDecimals)} ${blue('QSR')}');
+        'Available ${accountInfo.znn()!.addDecimals(coinDecimals)} ${green('ZNN')} and ${accountInfo.qsr()!.addDecimals(coinDecimals)} ${blue('QSR')}');
     return;
   }
 
@@ -163,9 +163,9 @@ Future<void> _depositQsr() async {
 
   if (balance.qsr()! < sentinelRegisterQsrAmount) {
     print(
-        'Required ${AmountUtils.addDecimals(sentinelRegisterQsrAmount, coinDecimals)} ${blue('QSR')}');
+        'Required ${sentinelRegisterQsrAmount.addDecimals(coinDecimals)} ${blue('QSR')}');
     print(
-        'Available ${AmountUtils.addDecimals(balance.qsr()!, coinDecimals)} ${blue('QSR')}');
+        'Available ${balance.qsr()!.addDecimals(coinDecimals)} ${blue('QSR')}');
     return;
   }
 
@@ -186,7 +186,7 @@ Future<void> _withdrawQsr() async {
     return;
   }
   print(
-      'Withdrawing ${AmountUtils.addDecimals(depositedQsr, coinDecimals)} ${blue('QSR')} ...');
+      'Withdrawing ${depositedQsr.addDecimals(coinDecimals)} ${blue('QSR')} ...');
   await znnClient.send(znnClient.embedded.sentinel.withdrawQsr());
   print('Done');
 }

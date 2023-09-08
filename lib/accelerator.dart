@@ -36,7 +36,7 @@ Future<void> _donate() async {
   }
 
   Token token = await getToken(tokenStandard);
-  BigInt amount = AmountUtils.extractDecimals(args[1], token.decimals);
+  BigInt amount = args[1].extractDecimals(token.decimals);
   if (amount <= BigInt.zero) {
     print('${red('Error!')} You cannot send that amount.');
     return;
@@ -47,7 +47,7 @@ Future<void> _donate() async {
   }
 
   print(
-      'Donating ${AmountUtils.addDecimals(amount, token.decimals)} ${token.symbol} to Accelerator-Z ...');
+      'Donating ${amount.addDecimals(token.decimals)} ${token.symbol} to Accelerator-Z ...');
   await znnClient
       .send(znnClient.embedded.accelerator.donate(amount, tokenStandard));
 

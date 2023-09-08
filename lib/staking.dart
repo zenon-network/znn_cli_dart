@@ -66,7 +66,7 @@ Future<void> _list() async {
 
   for (StakeEntry entry in stakeList.list) {
     print(
-        'Stake id ${entry.id.toString()} with amount ${AmountUtils.addDecimals(entry.amount, coinDecimals)} ${green('ZNN')}');
+        'Stake id ${entry.id.toString()} with amount ${entry.amount.addDecimals(coinDecimals)} ${green('ZNN')}');
     if (entry.expirationTimestamp > currentTime) {
       print(
           '    Can be revoked in ${formatDuration(entry.expirationTimestamp - currentTime)}');
@@ -82,7 +82,7 @@ Future<void> _register() async {
     print('stake.register amount duration (in months)');
     return;
   }
-  BigInt amount = AmountUtils.extractDecimals(args[1], coinDecimals);
+  BigInt amount = args[1].extractDecimals(coinDecimals);
   final duration = int.parse(args[2]);
   if (duration < 1 || duration > 12) {
     print(
@@ -91,7 +91,7 @@ Future<void> _register() async {
   }
   if (amount < stakeMinZnnAmount) {
     print(
-        '${red('Invalid amount')}: ${AmountUtils.addDecimals(amount, coinDecimals)} ${green('ZNN')}. Minimum staking amount is ${AmountUtils.addDecimals(stakeMinZnnAmount, coinDecimals)}');
+        '${red('Invalid amount')}: ${amount.addDecimals(coinDecimals)} ${green('ZNN')}. Minimum staking amount is ${stakeMinZnnAmount.addDecimals(coinDecimals)}');
     return;
   }
   AccountInfo balance = await znnClient.ledger.getAccountInfoByAddress(address);
@@ -101,7 +101,7 @@ Future<void> _register() async {
   }
 
   print(
-      'Staking ${AmountUtils.addDecimals(amount, coinDecimals)} ${green('ZNN')} for $duration $stakeUnitDurationName(s)');
+      'Staking ${amount.addDecimals(coinDecimals)} ${green('ZNN')} for $duration $stakeUnitDurationName(s)');
   await znnClient.send(
       znnClient.embedded.stake.stake(stakeTimeUnitSec * duration, amount));
   print('Done');

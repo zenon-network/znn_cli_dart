@@ -89,7 +89,7 @@ Future<void> _create() async {
   Address hashLockedAddress;
   TokenStandard tokenStandard = getTokenStandard(args[2]);
   Token token = await getToken(tokenStandard);
-  BigInt amount = AmountUtils.extractDecimals(args[3], token.decimals);
+  BigInt amount = args[3].extractDecimals(token.decimals);
   Function color = getColor(tokenStandard);
   int expirationTime;
   late Hash hashLock;
@@ -162,10 +162,10 @@ Future<void> _create() async {
 
   if (args.length == 7) {
     print(
-        'Creating htlc with amount ${AmountUtils.addDecimals(amount, token.decimals)} ${color(token.symbol)}');
+        'Creating htlc with amount ${amount.addDecimals(token.decimals)} ${color(token.symbol)}');
   } else {
     print(
-        'Creating htlc with amount ${AmountUtils.addDecimals(amount, token.decimals)} ${color(token.symbol)} using preimage ${green(hex.encode(preimage))}');
+        'Creating htlc with amount ${amount.addDecimals(token.decimals)} ${color(token.symbol)} using preimage ${green(hex.encode(preimage))}');
   }
   print('  Can be reclaimed in ${format(duration)} by $address');
   print(
@@ -235,7 +235,7 @@ Future<void> _unlock() async {
   Token token = await getToken(htlc.tokenStandard);
   Function color = getColor(htlc.tokenStandard);
   print(
-      'Unlocking htlc id ${htlc.id} with amount ${AmountUtils.addDecimals(htlc.amount, token.decimals)} ${color(token.symbol)}');
+      'Unlocking htlc id ${htlc.id} with amount ${htlc.amount.addDecimals(token.decimals)} ${color(token.symbol)}');
 
   await znnClient
       .send(znnClient.embedded.htlc.unlock(id, hex.decode(preimage)));
@@ -270,7 +270,7 @@ Future<void> _reclaim() async {
   Token token = await getToken(htlc.tokenStandard);
   Function color = getColor(htlc.tokenStandard);
   print(
-      'Reclaiming htlc id ${htlc.id} with amount ${AmountUtils.addDecimals(htlc.amount, token.decimals)} ${color(token.symbol)}');
+      'Reclaiming htlc id ${htlc.id} with amount ${htlc.amount.addDecimals(token.decimals)} ${color(token.symbol)}');
 
   await znnClient.send(znnClient.embedded.htlc.reclaim(id));
   print('Done');
@@ -293,7 +293,7 @@ Future<void> _get() async {
   format(Duration d) => d.toString().split('.').first.padLeft(8, '0');
 
   print(
-      'Htlc id ${htlc.id} with amount ${AmountUtils.addDecimals(htlc.amount, token.decimals)} ${color(token.symbol)}');
+      'Htlc id ${htlc.id} with amount ${htlc.amount.addDecimals(token.decimals)} ${color(token.symbol)}');
   if (htlc.expirationTime > currentTime) {
     print(
         '   Can be unlocked by ${htlc.hashLocked} with hashlock ${Hash.fromBytes(htlc.hashLock)} hashtype ${htlc.hashType}');
@@ -371,7 +371,7 @@ Future<void> _inspect() async {
     var hashType = txArgs[2].toString();
     var keyMaxSize = txArgs[3].toString();
     print('Create htlc: ${hashLocked.toString()} '
-        '${AmountUtils.addDecimals(amount, token!.decimals)} '
+        '${amount.addDecimals(token!.decimals)} '
         '${token.symbol} $expirationTime '
         '$hashType '
         '$keyMaxSize '

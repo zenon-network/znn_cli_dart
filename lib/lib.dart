@@ -12,4 +12,5 @@ export 'spork.dart';
 export 'staking.dart';
 export 'stats.dart';
 export 'token.dart';
+export 'wallet.dart';
 export 'utils/utils.dart';

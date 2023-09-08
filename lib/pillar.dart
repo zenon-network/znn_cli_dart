@@ -69,7 +69,7 @@ Future<void> _list() async {
   PillarInfoList pillarList = await znnClient.embedded.pillar.getAll();
   for (PillarInfo pillar in pillarList.list) {
     print(
-        '#${pillar.rank + 1} Pillar ${green(pillar.name)} has a delegated weight of ${AmountUtils.addDecimals(pillar.weight, coinDecimals)} ${green('ZNN')}');
+        '#${pillar.rank + 1} Pillar ${green(pillar.name)} has a delegated weight of ${pillar.weight.addDecimals(coinDecimals)} ${green('ZNN')}');
     print('    Producer address ${pillar.producerAddress}');
     print(
         '    Momentums ${pillar.currentStats.producedMomentums} / expected ${pillar.currentStats.expectedMomentums}');
@@ -103,9 +103,9 @@ Future<void> _register() async {
       qsrAmount > depositedQsr) {
     print('Cannot register Pillar with address ${address.toString()}');
     print(
-        'Required ${AmountUtils.addDecimals(pillarRegisterZnnAmount, coinDecimals)} ${green('ZNN')} and ${AmountUtils.addDecimals(qsrAmount, coinDecimals)} ${blue('QSR')}');
+        'Required ${pillarRegisterZnnAmount.addDecimals(coinDecimals)} ${green('ZNN')} and ${qsrAmount.addDecimals(coinDecimals)} ${blue('QSR')}');
     print(
-        'Available ${AmountUtils.addDecimals(balance.znn()!, coinDecimals)} ${green('ZNN')} and ${AmountUtils.addDecimals(balance.qsr()!, coinDecimals)} ${blue('QSR')}');
+        'Available ${balance.znn()!.addDecimals(coinDecimals)} ${green('ZNN')} and ${balance.qsr()!.addDecimals(coinDecimals)} ${blue('QSR')}');
     return;
   }
 
@@ -122,7 +122,7 @@ Future<void> _register() async {
   }
   if (depositedQsr < qsrAmount) {
     print(
-        'Depositing ${AmountUtils.addDecimals(qsrAmount - depositedQsr, coinDecimals)} ${blue('QSR')} for the Pillar registration');
+        'Depositing ${(qsrAmount - depositedQsr).addDecimals(coinDecimals)} ${blue('QSR')} for the Pillar registration');
     await znnClient
         .send(znnClient.embedded.pillar.depositQsr(qsrAmount - depositedQsr));
   }
@@ -201,16 +201,15 @@ Future<void> _depositQsr() async {
       'You have $depositedQsr / $qsrAmount ${blue('QSR')} deposited for the Pillar registration');
 
   if (balance.qsr()! < qsrAmount) {
+    print('Required ${qsrAmount.addDecimals(coinDecimals)} ${blue('QSR')}');
     print(
-        'Required ${AmountUtils.addDecimals(qsrAmount, coinDecimals)} ${blue('QSR')}');
-    print(
-        'Available ${AmountUtils.addDecimals(balance.qsr()!, coinDecimals)} ${blue('QSR')}');
+        'Available ${balance.qsr()!.addDecimals(coinDecimals)} ${blue('QSR')}');
     return;
   }
 
   if (depositedQsr < qsrAmount) {
     print(
-        'Depositing ${AmountUtils.addDecimals(qsrAmount - depositedQsr, coinDecimals)} ${blue('QSR')} for the Pillar registration');
+        'Depositing ${(qsrAmount - depositedQsr).addDecimals(coinDecimals)} ${blue('QSR')} for the Pillar registration');
     await znnClient
         .send(znnClient.embedded.pillar.depositQsr(qsrAmount - depositedQsr));
   }
@@ -225,7 +224,7 @@ Future<void> _withdrawQsr() async {
     return;
   }
   print(
-      'Withdrawing ${AmountUtils.addDecimals(depositedQsr, coinDecimals)} ${blue('QSR')} ...');
+      'Withdrawing ${depositedQsr.addDecimals(coinDecimals)} ${blue('QSR')} ...');
   await znnClient.send(znnClient.embedded.pillar.withdrawQsr());
   print('Done');
 }

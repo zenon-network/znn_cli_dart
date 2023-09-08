@@ -121,8 +121,7 @@ Future<void> _info() async {
       print(
           '      $type ${color(token.name)} with symbol ${color(token.symbol)} and standard ${color(token.tokenStandard.toString())}');
       print(
-          '        ${green('ZNN ${tuple.znnPercentage / 100}%')} ${blue('QSR ${tuple.qsrPercentage / 100}%')} minimum amount ${AmountUtils.addDecimals(tuple.minAmount, token.decimals)}');
-      print('');
+          '        ${green('ZNN ${tuple.znnPercentage / 100}%')} ${blue('QSR ${tuple.qsrPercentage / 100}%')} minimum amount ${tuple.minAmount.addDecimals(token.decimals)}');
     }
   }
 }
@@ -167,7 +166,6 @@ Future<void> _timeChallenges() async {
     print('   Method: ${info.methodName}');
     print('   Start height: ${info.challengeStartHeight}');
     print('   Params hash: ${info.paramsHash}');
-    print('');
   }
 }
 
@@ -197,9 +195,8 @@ Future<void> _getRewardTotal() async {
     } else {
       print('Total Rewards:');
       print(
-          '   ${green('ZNN')}: ${green(AmountUtils.addDecimals(znnRewards, coinDecimals))}');
-      print(
-          '   ${blue('QSR')}: ${blue(AmountUtils.addDecimals(qsrRewards, coinDecimals))}');
+          '   ${green('ZNN')}: ${green(znnRewards.addDecimals(coinDecimals))}');
+      print('   ${blue('QSR')}: ${blue(qsrRewards.addDecimals(coinDecimals))}');
     }
   } else {
     print('No rewards found.');
@@ -238,15 +235,14 @@ Future<void> _getStakeEntries() async {
         '      Status: ${info.amount != BigInt.zero && info.revokeTime == 0 ? 'Active' : 'Cancelled'}');
     print('      Token: ${token.name}');
     print(
-        '      Amount: ${AmountUtils.addDecimals(info.amount, token.decimals)} ${token.symbol}');
+        '      Amount: ${info.amount.addDecimals(token.decimals)} ${token.symbol}');
     print(
-        '      Weighted Amount: ${AmountUtils.addDecimals(info.weightedAmount, token.decimals)} ${token.symbol}');
+        '      Weighted Amount: ${info.weightedAmount.addDecimals(token.decimals)} ${token.symbol}');
     print(
         '      Duration: $duration $stakeUnitDurationName${duration > 1 ? 's' : null}');
     print(
         '      Time Remaining: ${format(Duration(seconds: timeRemaining))} day${timeRemaining > (24 * 60 * 60) ? 's' : null}');
     print('      Revoke Time: ${info.revokeTime}');
-    print('');
   }
 }
 
@@ -265,9 +261,9 @@ Future<void> _getUncollectedReward() async {
       uncollectedRewards.qsrAmount != BigInt.zero) {
     print('Uncollected Rewards:');
     print(
-        '   ${green('ZNN')}: ${green(AmountUtils.addDecimals(uncollectedRewards.znnAmount, coinDecimals))}');
+        '   ${green('ZNN')}: ${green(uncollectedRewards.znnAmount.addDecimals(coinDecimals))}');
     print(
-        '   ${blue('QSR')}: ${blue(AmountUtils.addDecimals(uncollectedRewards.qsrAmount, coinDecimals))}');
+        '   ${blue('QSR')}: ${blue(uncollectedRewards.qsrAmount.addDecimals(coinDecimals))}');
   } else {
     print('No uncollected rewards');
   }
@@ -284,7 +280,7 @@ Future<void> _stake() async {
   int duration = months * stakeTimeUnitSec;
   TokenStandard tokenStandard = getTokenStandard(args[3]);
   Token token = await getToken(tokenStandard);
-  BigInt amount = AmountUtils.extractDecimals(args[2], token.decimals);
+  BigInt amount = args[2].extractDecimals(token.decimals);
 
   if (duration < stakeTimeMinSec ||
       duration > stakeTimeMaxSec ||
@@ -316,7 +312,7 @@ Future<void> _stake() async {
   if (found) {
     if (amount < liquidityToken.minAmount) {
       print(
-          '${red('Error!')} Minimum staking requirement: ${AmountUtils.addDecimals(liquidityToken.minAmount, token.decimals)} ${token.symbol}');
+          '${red('Error!')} Minimum staking requirement: ${liquidityToken.minAmount.addDecimals(token.decimals)} ${token.symbol}');
       return;
     }
   } else {
@@ -326,7 +322,7 @@ Future<void> _stake() async {
   }
 
   print(
-      'Staking ${AmountUtils.addDecimals(amount, token.decimals)} ${token.symbol} for $months month${months > 1 ? 's' : null} ...');
+      'Staking ${amount.addDecimals(token.decimals)} ${token.symbol} for $months month${months > 1 ? 's' : null} ...');
   AccountBlockTemplate block = znnClient.embedded.liquidity
       .liquidityStake(duration, amount, tokenStandard);
   await znnClient.send(block);
@@ -390,10 +386,9 @@ Future<void> _collectRewards() async {
       uncollectedRewards.qsrAmount != BigInt.zero) {
     print('Uncollected Rewards:');
     print(
-        '   ${green('ZNN')}: ${green(AmountUtils.addDecimals(uncollectedRewards.znnAmount, coinDecimals))}');
+        '   ${green('ZNN')}: ${green(uncollectedRewards.znnAmount.addDecimals(coinDecimals))}');
     print(
-        '   ${blue('QSR')}: ${blue(AmountUtils.addDecimals(uncollectedRewards.qsrAmount, coinDecimals))}');
-    print('');
+        '   ${blue('QSR')}: ${blue(uncollectedRewards.qsrAmount.addDecimals(coinDecimals))}\n');
     print('Collecting rewards ...');
     AccountBlockTemplate block = znnClient.embedded.liquidity.collectReward();
     await znnClient.send(block);

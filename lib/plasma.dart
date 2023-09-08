@@ -71,14 +71,14 @@ Future<void> _list() async {
 
   if (fusionEntryList.count > 0) {
     print(
-        'Fusing ${AmountUtils.addDecimals(fusionEntryList.qsrAmount, coinDecimals)} ${blue('QSR')} for Plasma in ${fusionEntryList.count} entries');
+        'Fusing ${fusionEntryList.qsrAmount.addDecimals(coinDecimals)} ${blue('QSR')} for Plasma in ${fusionEntryList.count} entries');
   } else {
     print('No Plasma fusion entries found');
   }
 
   for (FusionEntry entry in fusionEntryList.list) {
     print(
-        '  ${AmountUtils.addDecimals(entry.qsrAmount, coinDecimals)} ${blue('QSR')} for ${entry.beneficiary.toString()}');
+        '  ${entry.qsrAmount.addDecimals(coinDecimals)} ${blue('QSR')} for ${entry.beneficiary.toString()}');
     print(
         'Can be canceled at momentum height: ${entry.expirationHeight}. Use id ${entry.id} to cancel');
   }
@@ -94,7 +94,7 @@ Future<void> _get() async {
   PlasmaInfo plasmaInfo = await znnClient.embedded.plasma.get(address);
   print(
       '${green(address.toString())} has ${plasmaInfo.currentPlasma} / ${plasmaInfo.maxPlasma}'
-      ' plasma with ${AmountUtils.addDecimals(plasmaInfo.qsrAmount, coinDecimals)} ${blue('QSR')} fused.');
+      ' plasma with ${plasmaInfo.qsrAmount.addDecimals(coinDecimals)} ${blue('QSR')} fused.');
 }
 
 Future<void> _fuse() async {
@@ -104,7 +104,7 @@ Future<void> _fuse() async {
     return;
   }
   Address beneficiary = parseAddress(args[1]);
-  BigInt amount = AmountUtils.extractDecimals(args[2], coinDecimals);
+  BigInt amount = args[2].extractDecimals(coinDecimals);
 
   if (!assertUserAddress(beneficiary)) {
     return;
@@ -112,14 +112,14 @@ Future<void> _fuse() async {
 
   if (amount < fuseMinQsrAmount) {
     print(
-        '${red('Invalid amount')}: ${AmountUtils.addDecimals(amount, coinDecimals)} ${blue('QSR')}. Minimum staking amount is ${AmountUtils.addDecimals(fuseMinQsrAmount, coinDecimals)}');
+        '${red('Invalid amount')}: ${amount.addDecimals(coinDecimals)} ${blue('QSR')}. Minimum staking amount is ${fuseMinQsrAmount.addDecimals(coinDecimals)}');
     return;
   } else if (amount % BigInt.from(oneQsr) != BigInt.zero) {
     print('${red('Error!')} Amount has to be integer');
     return;
   }
   print(
-      'Fusing ${AmountUtils.addDecimals(amount, coinDecimals)} ${blue('QSR')} to ${args[1]}');
+      'Fusing ${amount.addDecimals(coinDecimals)} ${blue('QSR')} to ${args[1]}');
   await znnClient.send(znnClient.embedded.plasma.fuse(beneficiary, amount));
   print('Done');
 }
