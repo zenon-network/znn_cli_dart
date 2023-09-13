@@ -98,7 +98,7 @@ Future<void> _send() async {
   TokenStandard tokenStandard =
       args.length > 3 ? getTokenStandard(args[3]) : znnZts;
   Token token = await getToken(tokenStandard);
-  BigInt amount = args[2].extractDecimals(token.decimals);
+  BigInt amount = AmountUtils.extractDecimals(args[2], token.decimals);
   Function color = getColor(tokenStandard);
 
   if (!await hasBalance(address, tokenStandard, amount)) {
@@ -110,10 +110,10 @@ Future<void> _send() async {
   if (args.length == 5) {
     block.data = utf8.encode(args[4]);
     print(
-        'Sending ${amount.addDecimals(token.decimals)} ${color(token.symbol)} to ${args[1]} with a message "${args[4]}"');
+        'Sending ${AmountUtils.addDecimals(amount, token.decimals)} ${color(token.symbol)} to ${args[1]} with a message "${args[4]}"');
   } else {
     print(
-        'Sending ${amount.addDecimals(token.decimals)} ${color(token.symbol)} to ${args[1]}');
+        'Sending ${AmountUtils.addDecimals(amount, token.decimals)} ${color(token.symbol)} to ${args[1]}');
   }
 
   await znnClient.send(block);
@@ -247,7 +247,7 @@ Future<void> _balance() async {
   }
   for (BalanceInfoListItem entry in info.balanceInfoList!) {
     print(
-        '  ${entry.balance!.addDecimals(entry.token!.decimals)} ${entry.token!.symbol} '
+        '  ${AmountUtils.addDecimals(entry.balance!, entry.token!.decimals)} ${entry.token!.symbol} '
         '${entry.token!.domain} ${entry.token!.tokenStandard.toString()}');
   }
 }

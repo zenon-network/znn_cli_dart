@@ -99,7 +99,7 @@ Future<void> _list() async {
     print(
         '   ${color(token.name)} has ${token.decimals} decimals, ${token.isMintable ? 'is mintable' : 'is not mintable'}, ${token.isBurnable ? 'can be burned' : 'cannot be burned'}, and ${token.isUtility ? 'is a utility coin' : 'is not a utility coin'}');
     print(
-        '   The total supply is ${token.totalSupply.addDecimals(token.decimals)} and the maximum supply is ${token.maxSupply.addDecimals(token.decimals)}');
+        '   The total supply is ${AmountUtils.addDecimals(token.totalSupply, token.decimals)} and the maximum supply is ${AmountUtils.addDecimals(token.maxSupply, token.decimals)}');
     print('   Domain `${token.domain}`');
   }
 }
@@ -122,7 +122,7 @@ Future<void> _getByStandard() async {
       '${color(type)} ${token.name} with symbol ${color(token.symbol)} and standard ${color(token.tokenStandard.toString())}');
   print('   Created by ${green(token.owner.toString())}');
   print(
-      '   The total supply is ${token.totalSupply.addDecimals(token.decimals)} and a maximum supply is ${token.maxSupply.addDecimals(token.decimals)}');
+      '   The total supply is ${AmountUtils.addDecimals(token.totalSupply, token.decimals)} and a maximum supply is ${AmountUtils.addDecimals(token.maxSupply, token.decimals)}');
   print(
       '   The token has ${token.decimals} decimals ${token.isMintable ? 'can be minted' : 'cannot be minted'} and ${token.isBurnable ? 'can be burned' : 'cannot be burned'}');
 }
@@ -147,7 +147,7 @@ Future<void> _getByOwner() async {
         '${color(type)} ${token.name} with symbol ${color(token.symbol)} and standard ${color(token.tokenStandard.toString())}');
     print('   Created by ${green(token.owner.toString())}');
     print(
-        '   The total supply is ${token.totalSupply.addDecimals(token.decimals)} and a maximum supply is ${token.maxSupply.addDecimals(token.decimals)}');
+        '   The total supply is ${AmountUtils.addDecimals(token.totalSupply, token.decimals)} and a maximum supply is ${AmountUtils.addDecimals(token.maxSupply, token.decimals)}');
     print(
         '   The token ${token.decimals} decimals ${token.isMintable ? 'can be minted' : 'cannot be minted'} and ${token.isBurnable ? 'can be burned' : 'cannot be burned'}');
   }

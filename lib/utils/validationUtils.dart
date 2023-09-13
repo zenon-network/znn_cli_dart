@@ -44,7 +44,7 @@ Future<bool> hasBalance(
           print('${red('Error!')} You do not have any ${entry.token!.symbol}');
         } else {
           print(
-              '${red('Error!')} You only have ${entry.balance!.addDecimals(entry.token!.decimals)} ${entry.token!.symbol} tokens');
+              '${red('Error!')} You only have ${AmountUtils.addDecimals(entry.balance!, entry.token!.decimals)} ${entry.token!.symbol} tokens');
         }
         ok = false;
         return false;

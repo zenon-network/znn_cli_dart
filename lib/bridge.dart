@@ -173,6 +173,7 @@ Future<void> _timeChallenges() async {
     print('   Method: ${info.methodName}');
     print('   Start height: ${info.challengeStartHeight}');
     print('   Params hash: ${info.paramsHash}');
+    print('');
   }
 }
 
@@ -200,16 +201,16 @@ Future<void> _fees() async {
     Function color = getColor(tokenStandard);
 
     print(
-        'Fees accumulated for ${color(token.symbol)}: ${info.accumulatedFee.addDecimals(token.decimals)}');
+        'Fees accumulated for ${color(token.symbol)}: ${AmountUtils.addDecimals(info.accumulatedFee, token.decimals)}');
   } else {
     ZtsFeesInfo znnInfo =
         await znnClient.embedded.bridge.getFeeTokenPair(znnZts);
     ZtsFeesInfo qsrInfo =
         await znnClient.embedded.bridge.getFeeTokenPair(qsrZts);
     print(
-        'Fees accumulated for ${green('ZNN')}: ${znnInfo.accumulatedFee.addDecimals(coinDecimals)}');
+        'Fees accumulated for ${green('ZNN')}: ${AmountUtils.addDecimals(znnInfo.accumulatedFee, coinDecimals)}');
     print(
-        'Fees accumulated for ${blue('QSR')}: ${qsrInfo.accumulatedFee.addDecimals(coinDecimals)}');
+        'Fees accumulated for ${blue('QSR')}: ${AmountUtils.addDecimals(qsrInfo.accumulatedFee, coinDecimals)}');
   }
 }
 
@@ -253,6 +254,7 @@ Future<void> _networkList() async {
         print('      ${tokenPair.toJson()}');
       }
     }
+    print('');
   }
 }
 
@@ -344,7 +346,7 @@ Future<void> _wrapToken() async {
   String toAddress = args[3]; // must be EVM-compatible
   TokenStandard tokenStandard = getTokenStandard(args[5]);
   Token token = await getToken(tokenStandard);
-  BigInt amount = args[4].extractDecimals(token.decimals);
+  BigInt amount = AmountUtils.extractDecimals(args[4], token.decimals);
 
   if (amount <= BigInt.zero) {
     print('${red('Error!')} You cannot send that amount.');
@@ -369,7 +371,7 @@ Future<void> _wrapToken() async {
       found = true;
       if (amount < tokenPair.minAmount) {
         print(
-            '${red('Error!')} Invalid amount. Must be at least ${tokenPair.minAmount.addDecimals(token.decimals)} ${token.symbol}');
+            '${red('Error!')} Invalid amount. Must be at least ${AmountUtils.addDecimals(tokenPair.minAmount, token.decimals)} ${token.symbol}');
         return;
       }
       break;
@@ -1228,10 +1230,11 @@ Future<void> _printWrapTokenRequest(WrapTokenRequest request) async {
       '   From: ${(await znnClient.ledger.getAccountBlockByHash(request.id))?.address}');
   print('   Token Standard: ${color(request.tokenStandard)}');
   print(
-      '   Amount: ${request.amount.addDecimals(decimals)} ${color(token.symbol)}');
-  print('   Fee: ${request.fee.addDecimals(decimals)}');
+      '   Amount: ${AmountUtils.addDecimals(request.amount, decimals)} ${color(token.symbol)}');
+  print('   Fee: ${AmountUtils.addDecimals(request.fee, decimals)}');
   print('   Signature: ${request.signature}');
   print('   Creation Momentum Height: ${request.creationMomentumHeight}');
+  print('');
 }
 
 Future<void> _printUnwrapTokenRequest(UnwrapTokenRequest request) async {
@@ -1246,12 +1249,13 @@ Future<void> _printUnwrapTokenRequest(UnwrapTokenRequest request) async {
   print('   To: ${request.toAddress}');
   print('   Token Standard: ${color(request.tokenStandard)}');
   print(
-      '   Amount: ${request.amount.addDecimals(decimals)} ${color(token.symbol)}');
+      '   Amount: ${AmountUtils.addDecimals(request.amount, decimals)} ${color(token.symbol)}');
   print('   Signature: ${request.signature}');
   print(
       '   Registration Momentum Height: ${request.registrationMomentumHeight}');
   print('   Redeemed: ${request.redeemed == 1 ? 'True' : 'False'}');
   print('   Revoked: ${request.revoked == 1 ? 'True' : 'False'}');
+  print('');
 }
 
 Future<void> _printRedeem(UnwrapTokenRequest request) async {
@@ -1262,6 +1266,7 @@ Future<void> _printRedeem(UnwrapTokenRequest request) async {
   print('Redeeming id: ${request.transactionHash}');
   print('   Log Index: ${request.logIndex}');
   print(
-      '   Amount: ${request.amount.addDecimals(decimals)} ${color(token.symbol)}');
+      '   Amount: ${AmountUtils.addDecimals(request.amount, decimals)} ${color(token.symbol)}');
   print('   To: ${request.toAddress}');
+  print('');
 }
