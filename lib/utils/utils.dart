@@ -4,4 +4,3 @@ export 'inputUtils.dart';
 export 'keystore.dart';
 export 'node.dart';
 export 'validationUtils.dart';
-export 'wallet.dart';
