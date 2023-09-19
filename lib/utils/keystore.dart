@@ -31,8 +31,8 @@ Future<void> unlockKeystore(ArgResults argResult) async {
     keyStoreFile = allKeyStores[0];
   } else {
     // Multiple keyStores present, but none is selected: action required
-    print(
-        '${red('Error!')} Please provide a keyStore or an address. Use ${green('wallet.list')} to list all available keyStores');
+    print('${red('Error!')} Please provide a keyStore or an address. '
+        'Use ${green('wallet.list')} to list all available keyStores');
     return;
   }
 

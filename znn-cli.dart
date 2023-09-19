@@ -5,11 +5,11 @@ import 'package:znn_cli_dart/lib.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 Future<int> main(List<String> _args) async {
-  final ArgParser argParser = parseArgs(_args);
+  final ArgParser argParser = parseArgs();
   final argResult = argParser.parse(_args);
   args = argResult.rest;
 
-  handleFlags(argResult, argParser.usage);
+  handleFlags(argResult);
 
   ensureDirectoriesExist();
   if (!commandsWithoutKeyStore.contains(args[0])) {

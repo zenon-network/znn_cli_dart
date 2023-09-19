@@ -7,7 +7,7 @@ import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 String argsUsage = '';
 
-ArgParser parseArgs(List<String> _args) {
+ArgParser parseArgs() {
   final ArgParser argParser = ArgParser();
 
   argParser.addOption('url',
@@ -42,9 +42,7 @@ ArgParser parseArgs(List<String> _args) {
   return argParser;
 }
 
-void handleFlags(ArgResults argResult, String _argsUsage) {
-  argsUsage = _argsUsage;
-
+void handleFlags(ArgResults argResult) {
   if (argResult['admin'] || (args.isNotEmpty && (args[0] == 'admin'))) {
     adminHelp();
     exit(0);
@@ -61,7 +59,7 @@ void handleFlags(ArgResults argResult, String _argsUsage) {
 
   if (argResult.wasParsed('verbose')) {
     log.hierarchicalLoggingEnabled = true;
-    logger.level = Level.INFO;
+    logger.level = Level.ALL;
     verbose = true;
   }
 
@@ -170,7 +168,7 @@ void header() {
   print('USAGE:');
   print('  $znnCli [OPTIONS] [FLAGS]\n');
   print('FLAGS:');
-  print(argsUsage + '\n');
+  print('$argsUsage\n');
   print('OPTIONS:');
 }
 
