@@ -11,8 +11,8 @@ dependencies:
   dcli: ^3.0.2
   znn_sdk_dart:
     git:
-      url: https://github.com/hypercore-one/znn_sdk_dart.git
-      ref: feature/bigint
+      url: https://github.com/zenon-network/znn_sdk_dart.git
+      ref: d960c0bdc6dc553eaa75d5ddddb34cab530578b8
 
 dev_dependencies:
   test: ^1.17.9

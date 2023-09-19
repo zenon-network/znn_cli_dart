@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:dcli/dcli.dart' hide verbose;
@@ -27,7 +28,7 @@ void liquidityAdminMenu() {
   print('    liquidity.admin.nominateGuardians address1 address2 ... addressN');
   print('    liquidity.admin.unlockStakeEntries tokenStandard');
   print('    liquidity.admin.setAdditionalReward znnReward qsrReward');
-  print('    liquidity.admin.setTokenTuple');
+  print('    liquidity.admin.setTokenTuple tokenTuples (json)');
 }
 
 Future<void> liquidityFunctions() async {
@@ -104,8 +105,10 @@ Future<void> _info() async {
 
   print('Liquidity info:');
   print('   Administrator: ${info.administrator}');
-  print('   ${green('ZNN')} reward: ${green('${info.znnReward}')}');
-  print('   ${blue('QSR')} reward: ${blue('${info.qsrReward}')}');
+  print(
+      '   ${green('ZNN')} reward: ${green(AmountUtils.addDecimals(info.znnReward, coinDecimals))}');
+  print(
+      '   ${blue('QSR')} reward: ${blue(AmountUtils.addDecimals(info.qsrReward, coinDecimals))}');
   print('   Is halted: ${info.isHalted}');
   print('   Tokens:');
 
@@ -419,7 +422,7 @@ Future<void> _guardianFunctions() async {
 }
 
 Future<void> _proposeAdmin() async {
-  _isGuardian();
+  if (!await _isGuardian()) return;
 
   if (args.length != 2) {
     print('Incorrect number of arguments. Expected:');
@@ -495,9 +498,14 @@ Future<void> _adminFunctions() async {
 
     case 'setTokenTuple':
       verbose
-          ? print('Description: Configure token tuples that can be staked')
+          ? print('Description: Configure token tuples that can be staked\n'
+              'Example: '
+              '${green('\'{\"tokenStandards\": [\"zts1nmfd7dkgqtwh6h9a3wu4xm\", \"zts1q5dh77csuncy6aetwd05gn\"],'
+                  '\"znnPercentages\": [5000,5000],'
+                  '\"qsrPercentages\": [5000,5000],'
+                  '\"minAmounts\": [\"10\",\"1000\"]}\'')}')
           : null;
-      print('This function is currently unsupported');
+      await _setTokenTuple();
       return;
 
     default:
@@ -506,7 +514,7 @@ Future<void> _adminFunctions() async {
 }
 
 Future<void> _emergency() async {
-  _isAdmin();
+  if (!await _isAdmin()) return;
   print('Initializing liquidity emergency mode ...');
   AccountBlockTemplate block = znnClient.embedded.liquidity.emergency();
   await znnClient.send(block);
@@ -514,7 +522,7 @@ Future<void> _emergency() async {
 }
 
 Future<void> _halt() async {
-  _isAdmin();
+  if (!await _isAdmin()) return;
   print('Halting the liquidity ...');
   AccountBlockTemplate block = znnClient.embedded.liquidity.setIsHalted(false);
   await znnClient.send(block);
@@ -522,7 +530,7 @@ Future<void> _halt() async {
 }
 
 Future<void> _unhalt() async {
-  _isAdmin();
+  if (!await _isAdmin()) return;
   print('Unhalting the liquidity ...');
   AccountBlockTemplate block = znnClient.embedded.liquidity.setIsHalted(false);
   await znnClient.send(block);
@@ -530,7 +538,7 @@ Future<void> _unhalt() async {
 }
 
 Future<void> _changeAdmin() async {
-  _isAdmin();
+  if (!await _isAdmin()) return;
 
   if (args.length != 2) {
     print('Incorrect number of arguments. Expected:');
@@ -551,7 +559,7 @@ Future<void> _changeAdmin() async {
 }
 
 Future<void> _nominateGuardians() async {
-  _isAdmin();
+  if (!await _isAdmin()) return;
 
   if (args.length < bridgeMinGuardians + 1) {
     print(
@@ -580,44 +588,12 @@ Future<void> _nominateGuardians() async {
 
   guardians = addresses.map((e) => Address.parse(e)).toList();
 
-  TimeChallengesList list =
-      await znnClient.embedded.liquidity.getTimeChallengesInfo();
-  TimeChallengeInfo? tc;
-
-  if (list.count > 0) {
-    for (var _tc in list.list) {
-      if (_tc.methodName == 'NominateGuardians') {
-        tc = _tc;
-      }
-    }
+  if (!await _checkTimeChallenge('NominateGuardians', guardians)) {
+    print('${red('Error!')} Time challenge failure');
+    return;
   }
 
-  if (tc != null && tc.paramsHash != emptyHash) {
-    Momentum frontierMomentum = await znnClient.ledger.getFrontierMomentum();
-    SecurityInfo securityInfo =
-        await znnClient.embedded.liquidity.getSecurityInfo();
-
-    if (tc.challengeStartHeight + securityInfo.administratorDelay >
-        frontierMomentum.height) {
-      print('Cannot nominate guardians; wait for time challenge to expire.');
-      return;
-    }
-
-    ByteData bd = combine(guardians);
-    Hash paramsHash = Hash.digest(bd.buffer.asUint8List());
-
-    if (tc.paramsHash == paramsHash) {
-      print('Committing guardians ...');
-    } else {
-      print('Time challenge hash does not match nominated guardians');
-      if (!confirm('Are you sure you want to nominate new guardians?',
-          defaultValue: false)) return;
-      print('Nominating guardians ...');
-    }
-  } else {
-    print('Nominating guardians ...');
-  }
-
+  print('Nominating guardians ...');
   AccountBlockTemplate block =
       znnClient.embedded.liquidity.nominateGuardians(guardians);
   await znnClient.send(block);
@@ -625,7 +601,7 @@ Future<void> _nominateGuardians() async {
 }
 
 Future<void> _unlockStakeEntries() async {
-  _isAdmin();
+  if (!await _isAdmin()) return;
 
   if (args.length != 2) {
     print('Incorrect number of arguments. Expected:');
@@ -644,7 +620,7 @@ Future<void> _unlockStakeEntries() async {
 }
 
 Future<void> _setAdditionalReward() async {
-  _isAdmin();
+  if (!await _isAdmin()) return;
 
   if (args.length != 3) {
     print('Incorrect number of arguments. Expected:');
@@ -662,21 +638,163 @@ Future<void> _setAdditionalReward() async {
   print('Done');
 }
 
-Future<void> _isGuardian() async {
+Future<void> _setTokenTuple() async {
+  if (!await _isAdmin()) return;
+
+  if (args.length != 2) {
+    print('Incorrect number of arguments. Expected:');
+    print('liquidity.admin.setTokenTuple tokenTuples (json)');
+    return;
+  }
+
+  String tokenTuples = args[1];
+  final data = jsonDecode(tokenTuples);
+
+  List<String> tokenStandards = [];
+  List<int> znnPercentages = [];
+  List<int> qsrPercentages = [];
+  List<BigInt> minAmounts = [];
+
+  for (MapEntry entries in data.entries) {
+    switch (entries.key.toString().toLowerCase()) {
+      case 'tokenstandards':
+        entries.value.forEach((zts) {
+          parseTokenStandard(zts);
+
+          if (zts == emptyZts.toString()) {
+            throw ('${red('Error!')} Invalid ZTS');
+          }
+
+          if (tokenStandards.contains(zts)) {
+            throw ('${red('Error!')} Cannot set parameters for duplicate ZTS');
+          }
+
+          tokenStandards.add(zts);
+        });
+        break;
+      case 'znnpercentages':
+        entries.value.forEach((percentage) {
+          znnPercentages.add(percentage);
+        });
+        break;
+      case 'qsrpercentages':
+        entries.value.forEach((percentage) {
+          qsrPercentages.add(percentage);
+        });
+        break;
+      case 'minamounts':
+        entries.value.forEach((amount) {
+          minAmounts.add(BigInt.parse(amount));
+        });
+        break;
+      default:
+        print('${red('Error!')} Invalid json parameters');
+        return;
+    }
+  }
+
+  if (tokenStandards.isEmpty) {
+    print('${red('Error!')} Invalid number of arguments');
+    return;
+  }
+
+  if ((znnPercentages.length != tokenStandards.length) ||
+      (qsrPercentages.length != tokenStandards.length) ||
+      (minAmounts.length != tokenStandards.length)) {
+    print(
+        '${red('Error!')} Each argument type must have the same number of values');
+    return;
+  }
+
+  int totalZnn = 0;
+  int totalQsr = 0;
+  int znnTotalPercentages = 10000;
+  int qsrTotalPercentages = 10000;
+
+  for (int i = 0; i < znnPercentages.length; i++) {
+    totalZnn += znnPercentages.elementAt(i);
+    totalQsr += qsrPercentages.elementAt(i);
+  }
+  if (totalZnn != znnTotalPercentages || totalQsr != qsrTotalPercentages) {
+    print(
+        '${red('Error!')} The sum of each set of percentages must be equal to $znnTotalPercentages');
+    return;
+  }
+
+  if (!await _checkTimeChallenge('SetTokenTuple',
+      (await znnClient.embedded.liquidity.getLiquidityInfo()).tokenTuples)) {
+    print('${red('Error!')} Time challenge failure');
+    return;
+  }
+
+  print('Setting token parameters ...');
+  AccountBlockTemplate block = znnClient.embedded.liquidity.setTokenTuple(
+    tokenStandards,
+    znnPercentages,
+    qsrPercentages,
+    minAmounts,
+  );
+  await znnClient.send(block);
+  print('Done');
+}
+
+Future<bool> _isGuardian() async {
   if (!(await znnClient.embedded.liquidity.getSecurityInfo())
       .guardians
       .contains(address)) {
     print(
         '${red('Permission denied!')} This function can only be called by a Guardian');
-    return;
+    return false;
   }
+  return true;
 }
 
-Future<void> _isAdmin() async {
+Future<bool> _isAdmin() async {
   if (!((await znnClient.embedded.liquidity.getLiquidityInfo()).administrator ==
       address)) {
     print(
         '${red('Permission denied!')} $address is not the Liquidity administrator');
-    return;
+    return false;
   }
+  return true;
+}
+
+Future<bool> _checkTimeChallenge(
+  String methodName,
+  List params,
+) async {
+  TimeChallengesList list =
+      await znnClient.embedded.liquidity.getTimeChallengesInfo();
+  TimeChallengeInfo? tc;
+
+  if (list.count > 0) {
+    for (var _tc in list.list) {
+      if (_tc.methodName == methodName) {
+        tc = _tc;
+      }
+    }
+  }
+
+  if (tc != null && tc.paramsHash != emptyHash) {
+    Momentum frontierMomentum = await znnClient.ledger.getFrontierMomentum();
+    SecurityInfo securityInfo =
+        await znnClient.embedded.liquidity.getSecurityInfo();
+
+    if (tc.challengeStartHeight + securityInfo.administratorDelay >
+        frontierMomentum.height) {
+      print('Cannot proceed; wait for time challenge to expire.');
+      return false;
+    }
+
+    ByteData bd = combine(params);
+    Hash paramsHash = Hash.digest(bd.buffer.asUint8List());
+
+    if (tc.paramsHash != paramsHash) {
+      print('Time challenge mismatch');
+      if (!confirm('Are you sure you want to proceed?', defaultValue: false)) {
+        return false;
+      }
+    }
+  }
+  return true;
 }

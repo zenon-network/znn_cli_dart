@@ -728,7 +728,7 @@ Future<void> _guardianFunctions() async {
 }
 
 Future<void> _proposeAdmin() async {
-  _isGuardian();
+  if (!await _isGuardian()) return;
 
   if (args.length != 2) {
     print('Incorrect number of arguments. Expected:');
@@ -854,7 +854,7 @@ Future<void> _adminFunctions() async {
 }
 
 Future<void> _emergency() async {
-  _isAdmin();
+  if (!await _isAdmin()) return;
   print('Initializing bridge emergency mode ...');
   AccountBlockTemplate block = znnClient.embedded.bridge.emergency();
   await znnClient.send(block);
@@ -862,7 +862,7 @@ Future<void> _emergency() async {
 }
 
 Future<void> _halt() async {
-  _isAdmin();
+  if (!await _isAdmin()) return;
   print('Halting bridge ...');
   AccountBlockTemplate block = znnClient.embedded.bridge.halt('1');
   await znnClient.send(block);
@@ -870,7 +870,7 @@ Future<void> _halt() async {
 }
 
 Future<void> _unhalt() async {
-  _isAdmin();
+  if (!await _isAdmin()) return;
   print('Unhalting the bridge ...');
   AccountBlockTemplate block = znnClient.embedded.bridge.unhalt();
   await znnClient.send(block);
@@ -878,7 +878,7 @@ Future<void> _unhalt() async {
 }
 
 Future<void> _enableKeyGen() async {
-  _isAdmin();
+  if (!await _isAdmin()) return;
   print('Enabling TSS key generation ...');
   AccountBlockTemplate setAllowKeyGen =
       znnClient.embedded.bridge.setAllowKeyGen(true);
@@ -887,7 +887,7 @@ Future<void> _enableKeyGen() async {
 }
 
 Future<void> _disableKeyGen() async {
-  _isAdmin();
+  if (!await _isAdmin()) return;
   print('Disabling TSS key generation ...');
   AccountBlockTemplate block = znnClient.embedded.bridge.setAllowKeyGen(false);
   await znnClient.send(block);
@@ -895,7 +895,7 @@ Future<void> _disableKeyGen() async {
 }
 
 Future<void> _setTokenPair() async {
-  _isAdmin();
+  if (!await _isAdmin()) return;
 
   if (args.length != 12) {
     print('Incorrect number of arguments. Expected:');
@@ -947,7 +947,7 @@ Future<void> _setTokenPair() async {
 }
 
 Future<void> _removeTokenPair() async {
-  _isAdmin();
+  if (!await _isAdmin()) return;
 
   if (args.length != 5) {
     print('Incorrect number of arguments. Expected:');
@@ -969,7 +969,7 @@ Future<void> _removeTokenPair() async {
 }
 
 Future<void> _revokeUnwrapRequest() async {
-  _isAdmin();
+  if (!await _isAdmin()) return;
 
   if (args.length != 3) {
     print('Incorrect number of arguments. Expected:');
@@ -988,7 +988,7 @@ Future<void> _revokeUnwrapRequest() async {
 }
 
 Future<void> _nominateGuardians() async {
-  _isAdmin();
+  if (!await _isAdmin()) return;
 
   if (args.length < bridgeMinGuardians + 1) {
     print(
@@ -1062,7 +1062,7 @@ Future<void> _nominateGuardians() async {
 }
 
 Future<void> _changeAdmin() async {
-  _isAdmin();
+  if (!await _isAdmin()) return;
 
   if (args.length != 2) {
     print('Incorrect number of arguments. Expected:');
@@ -1083,7 +1083,7 @@ Future<void> _changeAdmin() async {
 }
 
 Future<void> _setMetadata() async {
-  _isAdmin();
+  if (!await _isAdmin()) return;
 
   if (args.length != 2) {
     print('Incorrect number of arguments. Expected:');
@@ -1102,7 +1102,7 @@ Future<void> _setMetadata() async {
 }
 
 Future<void> _setOrchestratorInfo() async {
-  _isAdmin();
+  if (!await _isAdmin()) return;
 
   if (args.length != 5) {
     print('Incorrect number of arguments. Expected:');
@@ -1127,7 +1127,7 @@ Future<void> _setOrchestratorInfo() async {
 }
 
 Future<void> _setNetwork() async {
-  _isAdmin();
+  if (!await _isAdmin()) return;
 
   if (args.length != 6) {
     print('Incorrect number of arguments. Expected:');
@@ -1156,7 +1156,7 @@ Future<void> _setNetwork() async {
 }
 
 Future<void> _removeNetwork() async {
-  _isAdmin();
+  if (!await _isAdmin()) return;
 
   if (args.length != 3) {
     print('Incorrect number of arguments. Expected:');
@@ -1175,7 +1175,7 @@ Future<void> _removeNetwork() async {
 }
 
 Future<void> _setNetworkMetadata() async {
-  _isAdmin();
+  if (!await _isAdmin()) return;
 
   if (args.length != 4) {
     print('Incorrect number of arguments. Expected:');
@@ -1198,23 +1198,25 @@ Future<void> _setNetworkMetadata() async {
   print('Done');
 }
 
-Future<void> _isGuardian() async {
+Future<bool> _isGuardian() async {
   if (!(await znnClient.embedded.bridge.getSecurityInfo())
       .guardians
       .contains(address)) {
     print(
         '${red('Permission denied!')} This function can only be called by a Guardian');
-    return;
+    return false;
   }
+  return true;
 }
 
-Future<void> _isAdmin() async {
+Future<bool> _isAdmin() async {
   if (!((await znnClient.embedded.bridge.getBridgeInfo()).administrator ==
       address)) {
     print(
         '${red('Permission denied!')} $address is not the Bridge administrator');
-    return;
+    return false;
   }
+  return true;
 }
 
 Future<void> _printWrapTokenRequest(WrapTokenRequest request) async {

@@ -90,6 +90,14 @@ Address parseAddress(String address) {
   }
 }
 
+TokenStandard parseTokenStandard(String zts) {
+  try {
+    return TokenStandard.parse(zts);
+  } catch (e) {
+    throw ('${red('Error!')} $zts is not a valid ZTS');
+  }
+}
+
 bool assertUserAddress(Address address) {
   if (address.isEmbedded() || address == emptyAddress) {
     print('${red('Invalid address')}: $address is not a user address');

@@ -89,10 +89,10 @@ List<int> generatePreimage([int length = htlcPreimageDefaultLength]) {
   return List<int>.generate(length, (i) => Random.secure().nextInt(maxInt));
 }
 
-ByteData combine(List<Address> addresses) {
+ByteData combine(List values) {
   try {
     List<List<int>> byteArrays = [];
-    addresses.map((e) => byteArrays.add(e.getBytes()!)).toList();
+    values.map((e) => byteArrays.add(e.getBytes()!)).toList();
 
     int offset = 0;
     int length = 0;
