@@ -147,7 +147,6 @@ Future<void> _cancel() async {
         print('${red('Error!')} Fuse entry can not be cancelled yet');
         gotError = true;
       }
-      return;
     }
     pageIndex++;
     fusions = await znnClient.embedded.plasma
