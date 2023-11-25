@@ -118,6 +118,7 @@ List<String> commandsWithoutConnection = [
   'wallet.list',
   'wallet.dumpMnemonic',
   'wallet.deriveAddresses',
+  'wallet.export',
   'createHash',
 ];
 
