@@ -12,8 +12,8 @@ Future<int> main(List<String> _args) async {
   handleFlags(argResult);
 
   ensureDirectoriesExist();
-  if (!commandsWithoutKeyStore.contains(args[0])) {
-    await unlockKeystore(argResult);
+  if (!commandsWithoutWallet.contains(args[0])) {
+    await unlockWallet(argResult);
   }
 
   await connectToNode(argResult);

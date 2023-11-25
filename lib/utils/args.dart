@@ -63,8 +63,8 @@ void handleFlags(ArgResults argResult) {
     verbose = true;
   }
 
-  if (!(commandsWithoutKeyStore.contains(args[0]) ||
-      commandsWithKeyStore.contains(args[0]) ||
+  if (!(commandsWithoutWallet.contains(args[0]) ||
+      commandsWithWallet.contains(args[0]) ||
       adminCommands.contains(args[0]))) {
     invalidCommand();
     exit(-1);

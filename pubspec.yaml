@@ -4,16 +4,23 @@ version: 0.0.5
 publish_to: none
 
 environment:
-  sdk: '>=2.14.0 <3.0.0'
+  sdk: '>=2.17.0 <3.0.0'
 
 dependencies:
   args: ^2.4.2
   dcli: ^3.0.2
   znn_sdk_dart:
     git:
-      url: https://github.com/zenon-network/znn_sdk_dart.git
-      ref: d960c0bdc6dc553eaa75d5ddddb34cab530578b8
-
+      url: https://github.com/hypercore-one/znn_sdk_dart.git
+      ref: feature/wallet
+  znn_ledger_dart:
+    git:
+      url: https://github.com/hypercore-one/znn_ledger_dart
+      ref: main
+  bip39: ^1.0.6
+  convert: ^3.1.1
+  collection: ^1.18.0
+      
 dev_dependencies:
   test: ^1.24.4
   lints: ^2.1.1

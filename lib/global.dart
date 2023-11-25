@@ -1,15 +1,23 @@
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
+import 'package:znn_ledger_dart/znn_ledger_dart.dart';
 
 const znnDaemon = 'znnd';
 const znnCli = 'znn-cli';
-const znnCliVersion = '0.0.5';
+const znnCliVersion = '0.0.6';
 
 final Zenon znnClient = Zenon();
+final KeyStoreManager keyStoreManager =
+    KeyStoreManager(walletPath: znnDefaultWalletDirectory);
+final List<WalletManager> walletManagers = [
+  keyStoreManager,
+  LedgerWalletManager()
+];
+late final WalletDefinition walletDefinition;
 late final Address address;
 late final List<String> args;
 bool verbose = false;
 
-List<String> commandsWithKeyStore = [
+List<String> commandsWithWallet = [
   'send',
   'receive',
   'receiveAll',
@@ -67,7 +75,7 @@ List<String> commandsWithKeyStore = [
   'orchestrator.unwrapToken',
 ];
 
-List<String> commandsWithoutKeyStore = [
+List<String> commandsWithoutWallet = [
   'frontierMomentum',
   'balance',
   'version',
@@ -118,6 +126,7 @@ List<String> commandsWithoutConnection = [
   'wallet.list',
   'wallet.dumpMnemonic',
   'wallet.deriveAddresses',
+  'wallet.export',
   'createHash',
 ];
 

@@ -2,7 +2,6 @@ import 'dart:io';
 
 import 'package:bip39/bip39.dart' as bip39;
 import 'package:dcli/dcli.dart' hide verbose;
-import 'package:path/path.dart' as path;
 import 'package:znn_cli_dart/lib.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
@@ -59,14 +58,14 @@ Future<void> walletFunctions() async {
 }
 
 Future<void> _list() async {
-  List<File> stores = await znnClient.keyStoreManager.listAllKeyStores();
-  if (stores.isNotEmpty) {
-    print('Available keyStores:');
-    for (File store in stores) {
-      print(path.basename(store.path));
+  var walletDefinitions = await getWalletDefinitions();
+  if (walletDefinitions.isNotEmpty) {
+    print('Available wallets:');
+    for (var walletDef in walletDefinitions) {
+      print(walletDef.walletName);
     }
   } else {
-    print('No keyStores found');
+    print('No wallets found');
   }
 }
 
@@ -80,9 +79,8 @@ Future<void> _createNew() async {
   String? name;
   if (args.length == 3) name = args[2];
 
-  File keyStore = await znnClient.keyStoreManager.createNew(args[1], name);
-  print(
-      'keyStore ${green('successfully')} created: ${path.basename(keyStore.path)}');
+  var walletDef = await keyStoreManager.createNew(args[1], name);
+  print('keyStore ${green('successfully')} created: ${walletDef.walletName}');
 }
 
 Future<void> _createFromMnemonic() async {
@@ -98,15 +96,20 @@ Future<void> _createFromMnemonic() async {
 
   String? name;
   if (args.length == 4) name = args[3];
-  File keyStore = await znnClient.keyStoreManager
-      .createFromMnemonic(args[1], args[2], name);
+  var walletDef =
+      await keyStoreManager.createFromMnemonic(args[1], args[2], name);
   print(
-      'keyStore ${green('successfully')} created from mnemonic: ${path.basename(keyStore.path)}');
+      'keyStore ${green('successfully')} created from mnemonic: ${walletDef.walletName}');
 }
 
 Future<void> _dumpMnemonic() async {
-  print('Mnemonic for keyStore ${znnClient.defaultKeyStorePath!}');
-  print(znnClient.defaultKeyStore!.mnemonic);
+  if (znnClient.defaultKeyStore is! KeyStore) {
+    print('${red('Error!')} this command is not supported by this wallet');
+    return;
+  }
+  var keyStore = znnClient.defaultKeyStore as KeyStore;
+  print('Mnemonic for keyStore ${znnClient.defaultKeyStorePath!.walletName}');
+  print(keyStore.mnemonic);
 }
 
 Future<void> _deriveAddresses() async {
@@ -116,11 +119,15 @@ Future<void> _deriveAddresses() async {
     return;
   }
 
-  print('Addresses for keyStore ${znnClient.defaultKeyStorePath!}');
-  int left = int.parse(args[1]);
-  int right = int.parse(args[2]);
-  List<Address?> addresses =
-      await znnClient.defaultKeyStore!.deriveAddressesByRange(left, right);
+  print('Addresses for wallet ${znnClient.defaultKeyStorePath!.walletName}');
+
+  var addresses = <Address?>[];
+  var left = int.parse(args[1]);
+  var right = int.parse(args[2]);
+  for (var i = left; i < right; i++) {
+    var walletAccount = await znnClient.defaultKeyStore!.getAccount(i);
+    addresses.add(await walletAccount.getAddress());
+  }
   for (int i = 0; i < right - left; i += 1) {
     print('  ${i + left}\t${addresses[i].toString()}');
   }
@@ -132,7 +139,11 @@ Future<void> _export() async {
     print('wallet.export filePath');
     return;
   }
-
-  await znnClient.defaultKeyStorePath!.copy(args[1]);
+  if (znnClient.defaultKeyStorePath is! KeyStoreDefinition) {
+    print('${red('Error!')} this command is not supported by this wallet');
+    return;
+  }
+  var walletDef = znnClient.defaultKeyStorePath as KeyStoreDefinition;
+  await File(walletDef.walletId).copy(args[1]);
   print('Done! Check the current directory');
 }
