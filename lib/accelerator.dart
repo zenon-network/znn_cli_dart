@@ -29,7 +29,7 @@ Future<void> _donate() async {
   }
 
   TokenStandard tokenStandard = getTokenStandard(args[2]);
-  if (tokenStandard != znnZts || tokenStandard != qsrZts) {
+  if (tokenStandard != znnZts && tokenStandard != qsrZts) {
     print(
         '${red('Error!')} You can only send ${green('ZNN')} or ${blue('QSR')}.');
     return;
