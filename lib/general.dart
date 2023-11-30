@@ -10,6 +10,7 @@ void generalMenu() {
       '    send toAddress amount [${green('ZNN')}/${blue('QSR')}/${magenta('ZTS')} message]');
   print('    receive blockHash');
   print('    receiveAll');
+  print('    autoreceive');
   print('    unreceived');
   print('    unconfirmed');
   print('    balance address');
