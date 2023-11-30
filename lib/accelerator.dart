@@ -11,7 +11,7 @@ Future<void> acceleratorFunctions() async {
   switch (args[0].split('.')[1]) {
     case 'donate':
       verbose
-          ? print('Description: Donate ZNN and QSR as fuel for the Mothership')
+          ? print('Description: Donate ZNN or QSR as fuel for the Mothership')
           : null;
       await _donate();
       return;
