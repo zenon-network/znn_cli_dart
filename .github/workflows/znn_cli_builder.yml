@@ -29,7 +29,7 @@ jobs:
           - name: Install dependencies
             run: dart pub get
           - name: Build znn-cli
-            run: dart compile exe cli_handler.dart -o ${{ matrix.output-name }}
+            run: dart compile exe znn-cli.dart -o ${{ matrix.output-name }}
           - name: Upload artifacts
             uses: actions/upload-artifact@v3
             with:
