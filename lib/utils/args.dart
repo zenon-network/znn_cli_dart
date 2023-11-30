@@ -87,7 +87,7 @@ void handleHelp() {
     case 'sentinel':
       sentinelMenu();
       exit(0);
-    case 'staking':
+    case 'stake':
       stakingMenu();
       exit(0);
     case 'pillar':
@@ -138,7 +138,7 @@ Future<void> handleCli() async {
       await statsFunctions();
     } else if (command[0].contains('sentinel')) {
       await sentinelFunctions();
-    } else if (command[0].contains('staking')) {
+    } else if (command[0].contains('stake')) {
       await stakingFunctions();
     } else if (command[0].contains('pillar')) {
       await pillarFunctions();
