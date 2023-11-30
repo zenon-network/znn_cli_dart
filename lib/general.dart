@@ -208,7 +208,7 @@ Future<void> _unreceived() async {
 
   for (var block in unreceived.list!) {
     print(
-        'Unreceived ${block.amount} ${block.token!.symbol} from ${block.address.toString()}. Use the hash ${block.hash} to receive');
+        'Unreceived ${AmountUtils.addDecimals(block.amount, block.token!.decimals)} ${block.token!.symbol} from ${block.address.toString()}. Use the hash ${block.hash} to receive');
   }
 }
 
