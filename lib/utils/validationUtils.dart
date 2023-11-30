@@ -1,30 +1,6 @@
-import 'dart:io';
-
 import 'package:dcli/dcli.dart';
 import 'package:znn_cli_dart/lib.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
-
-bool isZnndRunning(String executableName) {
-  switch (Platform.operatingSystem) {
-    case 'linux':
-      return Process.runSync('pgrep', [executableName], runInShell: true)
-          .stdout
-          .toString()
-          .isNotEmpty;
-    case 'windows':
-      return Process.runSync('tasklist', [], runInShell: true)
-          .stdout
-          .toString()
-          .contains(executableName);
-    case 'macos':
-      return Process.runSync('pgrep', [executableName], runInShell: true)
-          .stdout
-          .toString()
-          .isNotEmpty;
-    default:
-      return false;
-  }
-}
 
 Future<bool> hasBalance(
     Address address, TokenStandard tokenStandard, BigInt amount) async {
