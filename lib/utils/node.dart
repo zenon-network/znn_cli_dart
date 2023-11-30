@@ -21,11 +21,6 @@ Future<void> connectToNode(ArgResults argResult) async {
 
   if (!commandsWithoutConnection.contains(args[0]) ||
       urlOptionSupplied == true) {
-    if (!urlOptionSupplied && !isZnndRunning(znnDaemon)) {
-      print('$znnDaemon is not running. Please try again');
-      exit(-1);
-    }
-
     await znnClient.wsClient.initialize(urlOption!, retry: false);
     await selectChainId(argResult);
   }
