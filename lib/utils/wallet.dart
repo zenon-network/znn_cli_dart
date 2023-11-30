@@ -29,7 +29,7 @@ Future<void> unlockWallet(ArgResults argResult) async {
     // Make sure at least one wallet exists
     print('${red('Error!')} No wallets founds');
     return;
-  } else if (argResult['keyStore'] != null) {
+  } else if (argResult.wasParsed('keyStore')) {
     String? walletName;
 
     if (argResult['keyStore'] == "nanos" ||
