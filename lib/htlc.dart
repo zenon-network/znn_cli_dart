@@ -195,7 +195,8 @@ Future<void> _unlock() async {
   HtlcInfo htlc = await _getById(id);
   hashType = htlc.hashType;
 
-  if (!await znnClient.embedded.htlc.getProxyUnlockStatus(htlc.hashLocked)) {
+  if (!await znnClient.embedded.htlc.getProxyUnlockStatus(htlc.hashLocked) && 
+      address != htlc.hashLocked) {
     print('${red('Error!')} Cannot unlock htlc. Permission denied');
     return;
   } else if (htlc.expirationTime <= currentTime) {
