@@ -222,7 +222,7 @@ Future<void> _unlock() async {
       print('HashType 1 detected. Encoding preimage to SHA2-256...');
       preimageCheck =
           Hash.fromBytes(await Crypto.sha256Bytes(hex.decode(preimage)));
-      return;
+      break;
     default:
       preimageCheck = (Hash.digest(hex.decode(preimage)));
   }
