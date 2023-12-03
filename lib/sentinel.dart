@@ -89,7 +89,7 @@ Future<void> _register() async {
   AccountInfo accountInfo =
       await znnClient.ledger.getAccountInfoByAddress(address);
   var depositedQsr = await znnClient.embedded.sentinel.getDepositedQsr(address);
-  print('You have $depositedQsr ${blue('QSR')} deposited for the Sentinel');
+  print('You have ${AmountUtils.addDecimals(depositedQsr, coinDecimals)} ${blue('QSR')} deposited for the Sentinel');
   if (accountInfo.znn()! < sentinelRegisterZnnAmount ||
       accountInfo.qsr()! < sentinelRegisterQsrAmount) {
     print('Cannot register Sentinel with address ${address.toString()}');
@@ -159,7 +159,7 @@ Future<void> _depositQsr() async {
   BigInt depositedQsr =
       await znnClient.embedded.sentinel.getDepositedQsr(address);
   print(
-      'You have $depositedQsr / $sentinelRegisterQsrAmount ${blue('QSR')} deposited for the Sentinel');
+      'You have ${AmountUtils.addDecimals(depositedQsr, coinDecimals)} / ${AmountUtils.addDecimals(sentinelRegisterQsrAmount, coinDecimals)} ${blue('QSR')} deposited for the Sentinel');
 
   if (balance.qsr()! < sentinelRegisterQsrAmount) {
     print(
@@ -171,7 +171,7 @@ Future<void> _depositQsr() async {
 
   if (depositedQsr < sentinelRegisterQsrAmount) {
     print(
-        'Depositing ${sentinelRegisterQsrAmount - depositedQsr} ${blue('QSR')} for the Sentinel');
+        'Depositing ${AmountUtils.addDecimals(sentinelRegisterQsrAmount - depositedQsr, coinDecimals)} ${blue('QSR')} for the Sentinel');
     await znnClient.send(znnClient.embedded.sentinel
         .depositQsr(sentinelRegisterQsrAmount - depositedQsr));
   }
