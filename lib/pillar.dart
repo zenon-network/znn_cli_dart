@@ -198,7 +198,7 @@ Future<void> _depositQsr() async {
       await znnClient.embedded.pillar.getDepositedQsr(address);
 
   print(
-      'You have $depositedQsr / $qsrAmount ${blue('QSR')} deposited for the Pillar registration');
+      'You have ${AmountUtils.addDecimals(depositedQsr, coinDecimals)} / ${AmountUtils.addDecimals(qsrAmount, coinDecimals)} ${blue('QSR')} deposited for the Pillar registration');
 
   if (balance.qsr()! < qsrAmount) {
     print(
