@@ -239,9 +239,9 @@ Future<void> _issue() async {
     return;
   }
 
-  BigInt totalSupply = BigInt.parse(args[4]);
-  BigInt maxSupply = BigInt.parse(args[5]);
   int decimals = int.parse(args[6]);
+  BigInt totalSupply = AmountUtils.extractDecimals(args[4], decimals);
+  BigInt maxSupply = AmountUtils.extractDecimals(args[5], decimals);
 
   if (mintable == true) {
     if (maxSupply < totalSupply) {
@@ -283,10 +283,10 @@ Future<void> _mint() async {
     return;
   }
   TokenStandard tokenStandard = getTokenStandard(args[1]);
-  BigInt amount = BigInt.parse(args[2]);
+  Token token = await getToken(tokenStandard);
+  BigInt amount = AmountUtils.extractDecimals(args[2], token.decimals);
   Address mintAddress = parseAddress(args[3]);
 
-  Token token = await getToken(tokenStandard);
   if (token.isMintable == false) {
     print('${red('Error!')} The token is not mintable');
     return;
@@ -305,7 +305,8 @@ Future<void> _burn() async {
     return;
   }
   TokenStandard tokenStandard = getTokenStandard(args[1]);
-  BigInt amount = BigInt.parse(args[2]);
+  Token token = await getToken(tokenStandard);
+  BigInt amount = AmountUtils.extractDecimals(args[2], token.decimals);
 
   if (!await hasBalance(address, tokenStandard, amount)) {
     return;

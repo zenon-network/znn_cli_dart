@@ -907,11 +907,12 @@ Future<void> _setTokenPair() async {
   int networkClass = int.parse(args[1]);
   int chainId = int.parse(args[2]);
   TokenStandard tokenStandard = getTokenStandard(args[3]);
+  Token token = await getToken(tokenStandard);
   String tokenAddress = args[4]; // must be EVM-compatible
   bool bridgeable = bool.parse(args[5]);
   bool redeemable = bool.parse(args[6]);
   bool owned = bool.parse(args[7]);
-  BigInt minAmount = BigInt.parse(args[8]);
+  BigInt minAmount = AmountUtils.extractDecimals(args[8], token.decimals);
   int feePercentage = int.parse(args[9]) * 100;
   int redeemDelay = int.parse(args[10]);
   String metadata = args[11];
