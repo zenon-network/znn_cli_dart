@@ -120,7 +120,7 @@ Future<void> _fuse() async {
   }
   print(
       'Fusing ${AmountUtils.addDecimals(amount, coinDecimals)} ${blue('QSR')} to ${args[1]}');
-  await znnClient.send(znnClient.embedded.plasma.fuse(beneficiary, amount));
+  await send(znnClient.embedded.plasma.fuse(beneficiary, amount));
   print('Done');
 }
 
@@ -161,6 +161,6 @@ Future<void> _cancel() async {
     return;
   }
   print('Canceling Plasma fuse entry with id ${args[1]}');
-  await znnClient.send(znnClient.embedded.plasma.cancel(id));
+  await send(znnClient.embedded.plasma.cancel(id));
   print('Done');
 }

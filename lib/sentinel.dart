@@ -101,10 +101,10 @@ Future<void> _register() async {
   }
 
   if (depositedQsr < sentinelRegisterQsrAmount) {
-    await znnClient.send(znnClient.embedded.sentinel
+    await send(znnClient.embedded.sentinel
         .depositQsr(sentinelRegisterQsrAmount - depositedQsr));
   }
-  await znnClient.send(znnClient.embedded.sentinel.register());
+  await send(znnClient.embedded.sentinel.register());
   print('Done');
   print(
       'Check after 2 momentums if the Sentinel was successfully registered using ${green('sentinel.list')} command');
@@ -136,7 +136,7 @@ Future<void> _revoke() async {
     return;
   }
 
-  await znnClient.send(znnClient.embedded.sentinel.revoke());
+  await send(znnClient.embedded.sentinel.revoke());
   print('Done');
   print(
       'Use ${green('receiveAll')} to collect back the locked amount of ${green('ZNN')} and ${blue('QSR')}');
@@ -148,7 +148,7 @@ Future<void> _collect() async {
     print('sentinel.collect');
     return;
   }
-  await znnClient.send(znnClient.embedded.sentinel.collectReward());
+  await send(znnClient.embedded.sentinel.collectReward());
   print('Done');
   print(
       'Use ${green('receiveAll')} to collect your Sentinel reward(s) after 1 momentum');
@@ -172,7 +172,7 @@ Future<void> _depositQsr() async {
   if (depositedQsr < sentinelRegisterQsrAmount) {
     print(
         'Depositing ${AmountUtils.addDecimals(sentinelRegisterQsrAmount - depositedQsr, coinDecimals)} ${blue('QSR')} for the Sentinel');
-    await znnClient.send(znnClient.embedded.sentinel
+    await send(znnClient.embedded.sentinel
         .depositQsr(sentinelRegisterQsrAmount - depositedQsr));
   }
   print('Done');
@@ -187,6 +187,6 @@ Future<void> _withdrawQsr() async {
   }
   print(
       'Withdrawing ${AmountUtils.addDecimals(depositedQsr, coinDecimals)} ${blue('QSR')} ...');
-  await znnClient.send(znnClient.embedded.sentinel.withdrawQsr());
+  await send(znnClient.embedded.sentinel.withdrawQsr());
   print('Done');
 }

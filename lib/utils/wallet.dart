@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:args/args.dart';
 import 'package:dcli/dcli.dart';
 import 'package:znn_cli_dart/lib.dart';
@@ -28,7 +30,7 @@ Future<void> unlockWallet(ArgResults argResult) async {
   if (walletDefinitions.isEmpty) {
     // Make sure at least one wallet exists
     print('${red('Error!')} No wallets founds');
-    return;
+    exit(-1);
   } else if (argResult.wasParsed('keyStore')) {
     String? walletName;
 
@@ -48,7 +50,7 @@ Future<void> unlockWallet(ArgResults argResult) async {
         .any((x) => x.walletName.toLowerCase() == walletName!.toLowerCase())) {
       print(
           '${red('Error!')} The wallet ${argResult['keyStore']} does not exist');
-      return;
+      exit(-1);
     }
 
     // Use user provided wallet: make sure it exists
@@ -63,10 +65,9 @@ Future<void> unlockWallet(ArgResults argResult) async {
     // Multiple wallets present, but none is selected: action required
     print('${red('Error!')} Please provide a wallet name. '
         'Use ${green('wallet.list')} to list all available wallets');
-    return;
+    exit(-1);
   }
 
-  WalletOptions? walletOptions;
   if (walletDefinition is KeyStoreDefinition) {
     String? passphrase;
     if (argResult.wasParsed('passphrase')) {
@@ -75,13 +76,16 @@ Future<void> unlockWallet(ArgResults argResult) async {
       passphrase = enterPassphrase();
     }
     walletOptions = KeyStoreOptions(passphrase!);
+  } else {
+    walletOptions = null;
   }
 
-  int index = 0;
   if (argResult.wasParsed('index')) {
-    index = int.parse(argResult['index']);
+    accountIndex = int.parse(argResult['index']);
+  } else {
+    accountIndex = 0;
   }
-  
+
   try {
     for (var walletManager in walletManagers) {
       if (await walletManager.supportsWallet(walletDefinition)) {
@@ -90,7 +94,7 @@ Future<void> unlockWallet(ArgResults argResult) async {
         znnClient.defaultKeyStore = await znnClient.keyStoreManager
             .getWallet(walletDefinition, walletOptions);
         znnClient.defaultKeyPair =
-            await znnClient.defaultKeyStore!.getAccount(index);
+            await znnClient.defaultKeyStore!.getAccount(accountIndex);
         address = (await znnClient.defaultKeyPair!.getAddress());
         logger.info('Using address ${green(address.toString())}');
         break;
@@ -99,8 +103,10 @@ Future<void> unlockWallet(ArgResults argResult) async {
   } on IncorrectPasswordException {
     print(
         '${red('Error!')} Invalid passphrase for wallet ${walletDefinition.walletName}');
-  } on LedgerError catch (e) {
+    exit(-1);
+  } on ResponseError catch (e) {
     print(
-        '${red('Error!')} Unable to access Ledger wallet ${walletDefinition.walletName} $e');
+        '${red('Error!')} Could not connect to the Ledger ${walletDefinition.walletName}. Reason: ${e.statusWord}');
+    exit(-1);
   }
 }

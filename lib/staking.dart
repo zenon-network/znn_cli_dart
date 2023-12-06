@@ -102,7 +102,7 @@ Future<void> _register() async {
 
   print(
       'Staking ${AmountUtils.addDecimals(amount, coinDecimals)} ${green('ZNN')} for $duration $stakeUnitDurationName(s)');
-  await znnClient.send(
+  await send(
       znnClient.embedded.stake.stake(stakeTimeUnitSec * duration, amount));
   print('Done');
 }
@@ -145,14 +145,14 @@ Future<void> _revoke() async {
     return;
   }
 
-  await znnClient.send(znnClient.embedded.stake.cancel(hash));
+  await send(znnClient.embedded.stake.cancel(hash));
   print('Done');
   print(
       'Use ${green('receiveAll')} to collect your stake amount and uncollected reward(s) after 2 momentums');
 }
 
 Future<void> _collect() async {
-  await znnClient.send(znnClient.embedded.stake.collectReward());
+  await send(znnClient.embedded.stake.collectReward());
   print('Done');
   print(
       'Use ${green('receiveAll')} to collect your stake reward(s) after 1 momentum');

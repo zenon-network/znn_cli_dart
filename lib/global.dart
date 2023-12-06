@@ -13,6 +13,8 @@ final List<WalletManager> walletManagers = [
   LedgerWalletManager()
 ];
 late final WalletDefinition walletDefinition;
+late final WalletOptions? walletOptions;
+late final int accountIndex;
 late final Address address;
 late final List<String> args;
 bool verbose = false;

@@ -271,7 +271,7 @@ Future<void> _issue() async {
   if (!confirm('Do you want to proceed?', defaultValue: false)) return;
 
   print('Issuing ${magenta(args[1])} ZTS token ...');
-  await znnClient.send(znnClient.embedded.token.issueToken(args[1], args[2],
+  await send(znnClient.embedded.token.issueToken(args[1], args[2],
       args[3], totalSupply, maxSupply, decimals, mintable, burnable, utility));
   print('Done');
 }
@@ -293,7 +293,7 @@ Future<void> _mint() async {
   }
 
   print('Minting ZTS token ...');
-  await znnClient.send(
+  await send(
       znnClient.embedded.token.mintToken(tokenStandard, amount, mintAddress));
   print('Done');
 }
@@ -332,7 +332,7 @@ Future<void> _transferOwnership() async {
     print('${red('Error!')} Not owner of token ${args[1]}');
     return;
   }
-  await znnClient.send(znnClient.embedded.token.updateToken(
+  await send(znnClient.embedded.token.updateToken(
       tokenStandard, newOwnerAddress, token.isMintable, token.isBurnable));
   print('Done');
 }
@@ -350,7 +350,7 @@ Future<void> _disableMint() async {
     print('${red('Error!')} Not owner of token ${args[1]}');
     return;
   }
-  await znnClient.send(znnClient.embedded.token
+  await send(znnClient.embedded.token
       .updateToken(tokenStandard, token.owner, false, token.isBurnable));
   print('Done');
 }

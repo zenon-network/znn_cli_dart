@@ -117,7 +117,7 @@ Future<void> _send() async {
         'Sending ${AmountUtils.addDecimals(amount, token.decimals)} ${color(token.symbol)} to ${args[1]}');
   }
 
-  await znnClient.send(block);
+  await send(block);
   print('Done');
 }
 
@@ -129,7 +129,7 @@ Future<void> _receive() async {
   }
   Hash sendBlockHash = parseHash(args[1]);
   print('Please wait ...');
-  await znnClient.send(AccountBlockTemplate.receive(sendBlockHash));
+  await send(AccountBlockTemplate.receive(sendBlockHash));
   print('Done');
 }
 
@@ -152,7 +152,7 @@ Future<void> _receiveAll() async {
   print('Please wait ...');
   while (unreceived.count! > 0) {
     for (var block in unreceived.list!) {
-      await znnClient.send(AccountBlockTemplate.receive(block.hash));
+      await send(AccountBlockTemplate.receive(block.hash));
     }
     unreceived = await znnClient.ledger
         .getUnreceivedBlocksByAddress(address, pageIndex: 0, pageSize: 5);
@@ -175,8 +175,7 @@ Future<void> _autoreceive() async {
           }
           var hash = tx['hash'];
           print('receiving transaction with hash $hash');
-          var template = await znnClient
-              .send(AccountBlockTemplate.receive(parseHash(hash)));
+          var template = await send(AccountBlockTemplate.receive(parseHash(hash)));
           print(
               'successfully received $hash. Receive-block-hash ${template.hash}');
           await Future.delayed(Duration(seconds: 1));

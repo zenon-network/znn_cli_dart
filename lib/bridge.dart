@@ -386,7 +386,7 @@ Future<void> _wrapToken() async {
   print('Wrapping token ...');
   AccountBlockTemplate block = znnClient.embedded.bridge
       .wrapToken(networkClass, chainId, toAddress, amount, tokenStandard);
-  block = await znnClient.send(block);
+  block = await send(block);
   print('Done');
 }
 
@@ -573,7 +573,7 @@ Future<void> _unwrapRedeem() async {
 
     AccountBlockTemplate block = znnClient.embedded.bridge
         .redeem(request.transactionHash, request.logIndex);
-    await znnClient.send(block);
+    await send(block);
 
     print('Done');
     if (request.toAddress == address) {
@@ -612,7 +612,7 @@ Future<void> _unwrapRedeemAll() async {
         _printRedeem(request);
         AccountBlockTemplate redeem = znnClient.embedded.bridge
             .redeem(request.transactionHash, request.logIndex);
-        redeem = await znnClient.send(redeem);
+        redeem = await send(redeem);
         if (request.toAddress == address) {
           redeemedSelf += 1;
         }
@@ -750,7 +750,7 @@ Future<void> _proposeAdmin() async {
     print('Proposing new bridge administrator ...');
     AccountBlockTemplate block =
         znnClient.embedded.bridge.proposeAdministrator(newAdmin);
-    await znnClient.send(block);
+    await send(block);
     print('Done');
   } else {
     print('${red('Permission denied!')} Bridge is not in emergency mode');
@@ -857,7 +857,7 @@ Future<void> _emergency() async {
   if (!await _isAdmin()) return;
   print('Initializing bridge emergency mode ...');
   AccountBlockTemplate block = znnClient.embedded.bridge.emergency();
-  await znnClient.send(block);
+  await send(block);
   print('Done');
 }
 
@@ -865,7 +865,7 @@ Future<void> _halt() async {
   if (!await _isAdmin()) return;
   print('Halting bridge ...');
   AccountBlockTemplate block = znnClient.embedded.bridge.halt('1');
-  await znnClient.send(block);
+  await send(block);
   print('Done');
 }
 
@@ -873,7 +873,7 @@ Future<void> _unhalt() async {
   if (!await _isAdmin()) return;
   print('Unhalting the bridge ...');
   AccountBlockTemplate block = znnClient.embedded.bridge.unhalt();
-  await znnClient.send(block);
+  await send(block);
   print('Done');
 }
 
@@ -882,7 +882,7 @@ Future<void> _enableKeyGen() async {
   print('Enabling TSS key generation ...');
   AccountBlockTemplate setAllowKeyGen =
       znnClient.embedded.bridge.setAllowKeyGen(true);
-  setAllowKeyGen = await znnClient.send(setAllowKeyGen);
+  setAllowKeyGen = await send(setAllowKeyGen);
   print('Done');
 }
 
@@ -890,7 +890,7 @@ Future<void> _disableKeyGen() async {
   if (!await _isAdmin()) return;
   print('Disabling TSS key generation ...');
   AccountBlockTemplate block = znnClient.embedded.bridge.setAllowKeyGen(false);
-  await znnClient.send(block);
+  await send(block);
   print('Done');
 }
 
@@ -943,7 +943,7 @@ Future<void> _setTokenPair() async {
     redeemDelay,
     metadata,
   );
-  setTokenPair = await znnClient.send(setTokenPair);
+  setTokenPair = await send(setTokenPair);
   print('Done');
 }
 
@@ -965,7 +965,7 @@ Future<void> _removeTokenPair() async {
   print('Removing token pair ...');
   AccountBlockTemplate block = znnClient.embedded.bridge
       .removeTokenPair(networkClass, chainId, tokenStandard, tokenAddress);
-  await znnClient.send(block);
+  await send(block);
   print('Done');
 }
 
@@ -984,7 +984,7 @@ Future<void> _revokeUnwrapRequest() async {
   print('Removing unwrap request ...');
   AccountBlockTemplate block =
       znnClient.embedded.bridge.revokeUnwrapRequest(transactionHash, logIndex);
-  await znnClient.send(block);
+  await send(block);
   print('Done');
 }
 
@@ -1058,7 +1058,7 @@ Future<void> _nominateGuardians() async {
 
   AccountBlockTemplate block =
       znnClient.embedded.bridge.nominateGuardians(guardians);
-  await znnClient.send(block);
+  await send(block);
   print('Done');
 }
 
@@ -1079,7 +1079,7 @@ Future<void> _changeAdmin() async {
   print('Changing bridge administrator ...');
   AccountBlockTemplate block =
       znnClient.embedded.bridge.changeAdministrator(newAdmin);
-  await znnClient.send(block);
+  await send(block);
   print('Done');
 }
 
@@ -1098,7 +1098,7 @@ Future<void> _setMetadata() async {
   print('Setting bridge metadata ...');
   AccountBlockTemplate block =
       znnClient.embedded.bridge.setBridgeMetadata(metadata);
-  await znnClient.send(block);
+  await send(block);
   print('Done');
 }
 
@@ -1123,7 +1123,7 @@ Future<void> _setOrchestratorInfo() async {
       keyGenThreshold,
       confirmationsToFinality,
       estimatedMomentumTime);
-  await znnClient.send(block);
+  await send(block);
   print('Done');
 }
 
@@ -1152,7 +1152,7 @@ Future<void> _setNetwork() async {
     contractAddress,
     metadata,
   );
-  await znnClient.send(block);
+  await send(block);
   print('Done');
 }
 
@@ -1171,7 +1171,7 @@ Future<void> _removeNetwork() async {
   print('Removing network ...');
   AccountBlockTemplate block =
       znnClient.embedded.bridge.removeNetwork(networkClass, chainId);
-  await znnClient.send(block);
+  await send(block);
   print('Done');
 }
 
@@ -1195,7 +1195,7 @@ Future<void> _setNetworkMetadata() async {
     chainId,
     metadata,
   );
-  await znnClient.send(block);
+  await send(block);
   print('Done');
 }
 

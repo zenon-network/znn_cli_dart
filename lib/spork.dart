@@ -91,7 +91,7 @@ Future<void> _create() async {
   }
 
   print('Creating spork...');
-  await znnClient.send(znnClient.embedded.spork.createSpork(name, description));
+  await send(znnClient.embedded.spork.createSpork(name, description));
   print('Done');
 }
 
@@ -104,6 +104,6 @@ Future<void> _activate() async {
 
   Hash id = parseHash(args[1]);
   print('Activating spork...');
-  await znnClient.send(znnClient.embedded.spork.activateSpork(id));
+  await send(znnClient.embedded.spork.activateSpork(id));
   print('Done');
 }

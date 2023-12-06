@@ -171,7 +171,7 @@ Future<void> _create() async {
   print(
       '  Can be unlocked by $hashLockedAddress with hashlock $hashLock hashtype $hashType');
 
-  AccountBlockTemplate block = await znnClient.send(znnClient.embedded.htlc
+  AccountBlockTemplate block = await send(znnClient.embedded.htlc
       .create(token, amount, hashLockedAddress, expirationTime, hashType,
           keyMaxSize, hashLock.getBytes()));
 
@@ -273,7 +273,7 @@ Future<void> _reclaim() async {
   print(
       'Reclaiming htlc id ${htlc.id} with amount ${AmountUtils.addDecimals(htlc.amount, token.decimals)} ${color(token.symbol)}');
 
-  await znnClient.send(znnClient.embedded.htlc.reclaim(id));
+  await send(znnClient.embedded.htlc.reclaim(id));
   print('Done');
   print(
       'Use ${green('receiveAll')} to collect your htlc amount after 2 momentums');
@@ -404,14 +404,14 @@ Future<void> _getProxyStatus() async {
 }
 
 Future<void> _denyProxy() async {
-  await znnClient.send(znnClient.embedded.htlc.denyProxyUnlock()).then(
+  await send(znnClient.embedded.htlc.denyProxyUnlock()).then(
       (_) => print('Htlc proxy unlocking is denied for ${address.toString()}'));
 
   print('Done');
 }
 
 Future<void> _allowProxy() async {
-  await znnClient.send(znnClient.embedded.htlc.allowProxyUnlock()).then((_) =>
+  await send(znnClient.embedded.htlc.allowProxyUnlock()).then((_) =>
       print('Htlc proxy unlocking is allowed for ${address.toString()}'));
 
   print('Done');
@@ -485,7 +485,7 @@ Future<bool> _monitorAsync(
 
         if (htlc.timeLocked == address) {
           try {
-            await znnClient.send(znnClient.embedded.htlc.reclaim(htlc.id));
+            await send(znnClient.embedded.htlc.reclaim(htlc.id));
             print('  Reclaiming htlc id ${red(htlc.id.toString())} now... ');
             htlcs.remove(htlc);
           } catch (e) {

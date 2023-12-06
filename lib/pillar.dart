@@ -127,7 +127,7 @@ Future<void> _register() async {
         .send(znnClient.embedded.pillar.depositQsr(qsrAmount - depositedQsr));
   }
   print('Registering Pillar ...');
-  await znnClient.send(znnClient.embedded.pillar.register(
+  await send(znnClient.embedded.pillar.register(
       newName,
       producerAddress,
       rewardAddress,
@@ -151,7 +151,7 @@ Future<void> _revoke() async {
       ok = true;
       if (pillar.isRevocable) {
         print('Revoking Pillar ${pillar.name} ...');
-        await znnClient.send(znnClient.embedded.pillar.revoke(args[1]));
+        await send(znnClient.embedded.pillar.revoke(args[1]));
         print(
             'Use ${green('receiveAll')} to collect back the locked amount of ${green('ZNN')}');
       } else {
@@ -174,18 +174,18 @@ Future<void> _delegate() async {
     return;
   }
   print('Delegating to Pillar ${args[1]} ...');
-  await znnClient.send(znnClient.embedded.pillar.delegate(args[1]));
+  await send(znnClient.embedded.pillar.delegate(args[1]));
   print('Done');
 }
 
 Future<void> _undelegate() async {
   print('Undelegating ...');
-  await znnClient.send(znnClient.embedded.pillar.undelegate());
+  await send(znnClient.embedded.pillar.undelegate());
   print('Done');
 }
 
 Future<void> _collect() async {
-  await znnClient.send(znnClient.embedded.pillar.collectReward());
+  await send(znnClient.embedded.pillar.collectReward());
   print('Done');
   print(
       'Use ${green('receiveAll')} to collect your Pillar reward(s) after 1 momentum');
@@ -226,6 +226,6 @@ Future<void> _withdrawQsr() async {
   }
   print(
       'Withdrawing ${AmountUtils.addDecimals(depositedQsr, coinDecimals)} ${blue('QSR')} ...');
-  await znnClient.send(znnClient.embedded.pillar.withdrawQsr());
+  await send(znnClient.embedded.pillar.withdrawQsr());
   print('Done');
 }

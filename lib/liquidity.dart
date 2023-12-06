@@ -332,7 +332,7 @@ Future<void> _stake() async {
       'Staking ${AmountUtils.addDecimals(amount, token.decimals)} ${token.symbol} for $months month${months > 1 ? 's' : null} ...');
   AccountBlockTemplate block = znnClient.embedded.liquidity
       .liquidityStake(duration, amount, tokenStandard);
-  await znnClient.send(block);
+  await send(block);
   print('Done');
 }
 
@@ -370,7 +370,7 @@ Future<void> _cancelStake() async {
       print('Cancelling liquidity stake ...');
       AccountBlockTemplate block =
           znnClient.embedded.liquidity.cancelLiquidityStake(id);
-      await znnClient.send(block);
+      await send(block);
       print('Done');
       print(
           'Use ${green('receiveAll')} to collect your staked amount after 2 momentums');
@@ -399,7 +399,7 @@ Future<void> _collectRewards() async {
     print('');
     print('Collecting rewards ...');
     AccountBlockTemplate block = znnClient.embedded.liquidity.collectReward();
-    await znnClient.send(block);
+    await send(block);
     print('Done');
   } else {
     print('No uncollected rewards');
@@ -444,7 +444,7 @@ Future<void> _proposeAdmin() async {
     print('Proposing new liquidity administrator ...');
     AccountBlockTemplate block =
         znnClient.embedded.liquidity.proposeAdministrator(newAdmin);
-    await znnClient.send(block);
+    await send(block);
     print('Done');
   } else {
     print(
@@ -517,7 +517,7 @@ Future<void> _emergency() async {
   if (!await _isAdmin()) return;
   print('Initializing liquidity emergency mode ...');
   AccountBlockTemplate block = znnClient.embedded.liquidity.emergency();
-  await znnClient.send(block);
+  await send(block);
   print('Done');
 }
 
@@ -525,7 +525,7 @@ Future<void> _halt() async {
   if (!await _isAdmin()) return;
   print('Halting the liquidity ...');
   AccountBlockTemplate block = znnClient.embedded.liquidity.setIsHalted(false);
-  await znnClient.send(block);
+  await send(block);
   print('Done');
 }
 
@@ -533,7 +533,7 @@ Future<void> _unhalt() async {
   if (!await _isAdmin()) return;
   print('Unhalting the liquidity ...');
   AccountBlockTemplate block = znnClient.embedded.liquidity.setIsHalted(false);
-  await znnClient.send(block);
+  await send(block);
   print('Done');
 }
 
@@ -554,7 +554,7 @@ Future<void> _changeAdmin() async {
   print('Changing liquidity administrator ...');
   AccountBlockTemplate block =
       znnClient.embedded.liquidity.changeAdministrator(newAdmin);
-  await znnClient.send(block);
+  await send(block);
   print('Done');
 }
 
@@ -596,7 +596,7 @@ Future<void> _nominateGuardians() async {
   print('Nominating guardians ...');
   AccountBlockTemplate block =
       znnClient.embedded.liquidity.nominateGuardians(guardians);
-  await znnClient.send(block);
+  await send(block);
   print('Done');
 }
 
@@ -615,7 +615,7 @@ Future<void> _unlockStakeEntries() async {
   print('Unlocking ${token.name}  stake entries ...');
   AccountBlockTemplate block =
       znnClient.embedded.liquidity.unlockLiquidityStakeEntries(tokenStandard);
-  await znnClient.send(block);
+  await send(block);
   print('Done');
 }
 
@@ -634,7 +634,7 @@ Future<void> _setAdditionalReward() async {
   print('Setting additional liquidity reward ...');
   AccountBlockTemplate block =
       znnClient.embedded.liquidity.setAdditionalReward(znnReward, qsrReward);
-  await znnClient.send(block);
+  await send(block);
   print('Done');
 }
 
@@ -734,7 +734,7 @@ Future<void> _setTokenTuple() async {
     qsrPercentages,
     minAmounts,
   );
-  await znnClient.send(block);
+  await send(block);
   print('Done');
 }
 
