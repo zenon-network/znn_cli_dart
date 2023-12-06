@@ -1231,7 +1231,7 @@ Future<void> _printWrapTokenRequest(WrapTokenRequest request) async {
   print('   To: ${request.toAddress}');
   print(
       '   From: ${(await znnClient.ledger.getAccountBlockByHash(request.id))?.address}');
-  print('   Token Standard: ${color(request.tokenStandard)}');
+  print('   Token Standard: ${color(request.tokenStandard.toString())}');
   print(
       '   Amount: ${AmountUtils.addDecimals(request.amount, decimals)} ${color(token.symbol)}');
   print('   Fee: ${AmountUtils.addDecimals(request.fee, decimals)}');
@@ -1250,7 +1250,7 @@ Future<void> _printUnwrapTokenRequest(UnwrapTokenRequest request) async {
   print('   Chain Id: ${request.chainId}');
   print('   Log Index: ${request.logIndex}');
   print('   To: ${request.toAddress}');
-  print('   Token Standard: ${color(request.tokenStandard)}');
+  print('   Token Standard: ${color(request.tokenStandard.toString())}');
   print(
       '   Amount: ${AmountUtils.addDecimals(request.amount, decimals)} ${color(token.symbol)}');
   print('   Signature: ${request.signature}');
