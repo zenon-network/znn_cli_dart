@@ -10,7 +10,7 @@ void liquidityMenu() {
   print('    liquidity.info');
   print('    liquidity.security');
   print('    liquidity.timeChallenges');
-  print('    liquidity.getFrontierReward address');
+  print('    liquidity.getRewardTotal address');
   print('    liquidity.getStakeEntries address');
   print('    liquidity.getUncollectedReward address');
   print('    liquidity.stake duration (in months) amount tokenStandard');
