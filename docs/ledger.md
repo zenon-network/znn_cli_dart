@@ -16,7 +16,7 @@ Install the Zenon Ledger app on your Ledger Nano S to manage ZNN, QSR and ZTS to
 4. Find **Zenon** in the app catalog.
 5. Press the **Install** button of the app.
    - An installation window appears.
-   - Your device will display **Processing�**
+   - Your device will display **Processing**
    - The app installation is confirmed.
 
 ![nanos-znn-app](/docs/assets/screenshots/nanos-znn-app.png)
