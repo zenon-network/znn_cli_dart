@@ -118,15 +118,17 @@ Generate **devnet** configuration.
 ./nomctl/build/nomctl generate-devnet --data ./devnet --genesis-block=z1qqjnwjjpnue8xmmpanz6csze6tcmtzzdtfsww7/40000/400000
 ```
 
+> Replace the genesis-block address if you want to use another address for you devnet.
+
 Run the node with **devnet** configuration.
 
 ``` powershell
 ./go-zenon/build/znnd --data ./devnet
 ```
 
-> Replace the genesis-block address if you want to use another address for you devnet.
+## Explorer
 
-While keeping the shell open it is now possible to connect the **Zenon Explorer** to the node.
+While keeping the shell with the node running it is now possible to connect the **Zenon Explorer** to the node.
 
 Open a web browser and go to https://explorer.zenon.network and connect the **Zenon Explorer** to http://127.0.0.1:35997
 
