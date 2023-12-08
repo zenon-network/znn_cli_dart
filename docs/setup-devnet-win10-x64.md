@@ -112,10 +112,15 @@ cd ..
 
 ## Running
 
-Generate configuration and run a **devnet** node.
+Generate **devnet** configuration.
 
 ``` powershell
-./nomctl/build/nomctl --data ./devnet generate-devnet --genesis-block=z1qqjnwjjpnue8xmmpanz6csze6tcmtzzdtfsww7/40000/400000
+./nomctl/build/nomctl generate-devnet --data ./devnet --genesis-block=z1qqjnwjjpnue8xmmpanz6csze6tcmtzzdtfsww7/40000/400000
+```
+
+Run the node with **devnet** configuration.
+
+``` powershell
 ./go-zenon/build/znnd --data ./devnet
 ```
 
