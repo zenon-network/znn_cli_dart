@@ -17,6 +17,8 @@ sudo apt install git
 We will need Golang to compile the go-zenon code. Execute the following command in a Terminal.
 
 ``` bash
+sudo add-apt-repository ppa:longsleep/golang-backports
+sudo apt update
 sudo apt install golang-go
 ```
 
@@ -92,11 +94,45 @@ Compile the **go-zenon** code.
 make znnd
 ```
 
-Configure and run a **devnet** node.
+Change directory to the parent directory.
 
 ``` bash
-./build/znnd --data ./devnet generate-devnet --genesis-block=z1qqjnwjjpnue8xmmpanz6csze6tcmtzzdtfsww7,40000,400000
-./build/znnd --data ./devnet
+cd ..
+```
+
+### NoM community controller
+
+Create a clone of the **master** branch of the [hypercore-one/nomctl repository](https://github.com/hypercore-one/nomctl.git).
+
+``` bash
+git clone https://github.com/hypercore-one/nomctl.git
+```
+
+Change directory to the **nomctl** directory.
+
+``` bash
+cd nomctl
+```
+
+Compile the **nomctl** code.
+
+``` bash
+make
+```
+
+Change directory to the parent directory.
+
+``` bash
+cd ..
+```
+
+## Running
+
+Generate configuration and run a **devnet** node.
+
+``` bash
+./nomctl/build/nomctl --data ./devnet generate-devnet --genesis-block=z1qqjnwjjpnue8xmmpanz6csze6tcmtzzdtfsww7/40000/400000
+./go-zenon/build/znnd --data ./devnet
 ```
 
 > Replace the genesis-block address if you want to use another address for you devnet.

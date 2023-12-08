@@ -78,11 +78,45 @@ go build -o build/libznn.dll -buildmode=c-shared -tags libznn cmd/libznn/main_li
 go build -o build/znnd.exe cmd/znnd/main.go
 ```
 
-Configure and run a **devnet** node.
+Change directory to the parent directory.
 
 ``` powershell
-./build/znnd --data ./devnet generate-devnet --genesis-block=z1qqjnwjjpnue8xmmpanz6csze6tcmtzzdtfsww7,40000,400000
-./build/znnd --data ./devnet
+cd ..
+```
+
+### NoM community controller
+
+Create a clone of the **master** branch of the [hypercore-one/nomctl repository](https://github.com/hypercore-one/nomctl.git).
+
+``` powershell
+git clone https://github.com/hypercore-one/nomctl.git
+```
+
+Change directory to the **nomctl** directory.
+
+``` powershell
+cd nomctl
+```
+
+Compile the **nomctl** code.
+
+``` powershell
+go build -o build/nomctl.exe
+```
+
+Change directory to the parent directory.
+
+``` powershell
+cd ..
+```
+
+## Running
+
+Generate configuration and run a **devnet** node.
+
+``` powershell
+./nomctl/build/nomctl --data ./devnet generate-devnet --genesis-block=z1qqjnwjjpnue8xmmpanz6csze6tcmtzzdtfsww7/40000/400000
+./go-zenon/build/znnd --data ./devnet
 ```
 
 > Replace the genesis-block address if you want to use another address for you devnet.
