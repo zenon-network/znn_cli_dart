@@ -6,5 +6,8 @@ The Zenon CLI tool is designed to interact with Alphanet - Network of Momentum P
 Windows: `make windows`  
 Linux: `make linux`
 
+## Installation
+Download and extract the [latest version](../../releases).
+
 ## Notes
 All the required dynamic libraries were copied in the `build/` folder. When Moving the `znn-cli` binary, don't forget to move the libraries as well. 
