@@ -51,18 +51,22 @@ Future<AccountBlockTemplate> send(AccountBlockTemplate blockTemplate,
           await znnClient.defaultKeyStore!.getAccount(accountIndex);
     }
     return await znnClient.send(blockTemplate);
-  } on ResponseError catch (e) {
-    if (e.statusWord == StatusWord.unknownError) {
-      print(
-          '${red('Error!')} The Ledger ${walletDefinition.walletName} is not connected or unlocked.');
-    } else if (e.statusWord == StatusWord.appIsNotOpen) {
-      print(
-          '${red('Error!')} The Zenon app is not open on the Ledger ${walletDefinition.walletName}.');
-    } else if (e.statusWord == StatusWord.wrongResponseLength) {
-      // This happens when the Ledger device was opened by another process.
-      if (retries > 0) {
-        return await send(blockTemplate, true, retries - 1);
+  } catch (e) {
+    if (e is ResponseError) {
+      if (e.statusWord == StatusWord.unknownError) {
+        print(
+            '${red('Error!')} The Ledger ${walletDefinition.walletName} is not connected or unlocked.');
+      } else if (e.statusWord == StatusWord.appIsNotOpen) {
+        print(
+            '${red('Error!')} The Zenon app is not open on the Ledger ${walletDefinition.walletName}.');
+      } else if (e.statusWord == StatusWord.wrongResponseLength) {
+        // This happens when the Ledger device was opened by another process.
+        if (retries > 0) {
+          return await send(blockTemplate, true, retries - 1);
+        }
       }
+    } else {
+      print('${red('Error!')} Failed to send transaction $e.');
     }
 
     if (retries > 0) {
