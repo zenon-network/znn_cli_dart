@@ -197,18 +197,18 @@ packages:
     dependency: "direct main"
     description:
       name: dcli
-      sha256: "9ae4f5275fc1ef1205ee35ab290301af34f92ff0926dea391c0f917615a7aecf"
+      sha256: "64ec1924241fe53d5517a92f874390f9db7a4b2f986b3dbea2e900f60c44cea7"
       url: "https://pub.dev"
     source: hosted
-    version: "3.2.1"
+    version: "3.2.0"
   dcli_core:
     dependency: transitive
     description:
       name: dcli_core
-      sha256: f4ce465a867e481ca58b0c5c4e38dd3e354ecb2b67665edb7130a2247999497b
+      sha256: "8bcba1b7edce99e42a74e56b184101ece0fb3994e0fd152cdef94c0f9aa2acdb"
       url: "https://pub.dev"
     source: hosted
-    version: "3.2.1"
+    version: "3.2.2"
   dcli_terminal:
     dependency: transitive
     description:
@@ -237,10 +237,10 @@ packages:
     dependency: transitive
     description:
       name: file
-      sha256: "1b92bec4fc2a72f59a8e15af5f52cd441e4a7860b49499d69dfa817af20e925d"
+      sha256: "5fc22d7c25582e38ad9a8515372cd9a93834027aacf1801cf01164dac0ffa08c"
       url: "https://pub.dev"
     source: hosted
-    version: "6.1.4"
+    version: "7.0.0"
   freezed_annotation:
     dependency: transitive
     description:
@@ -469,10 +469,10 @@ packages:
     dependency: transitive
     description:
       name: posix
-      sha256: a0117dc2167805aa9125b82eee515cc891819bac2f538c83646d355b16f58b9a
+      sha256: "3ad26924254fd2354b0e2b95fc8b45ac392ad87434f8e64807b3a1ac077f2256"
       url: "https://pub.dev"
     source: hosted
-    version: "6.0.1"
+    version: "5.0.0"
   pub_semver:
     dependency: transitive
     description:
@@ -497,6 +497,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.0.0-alpha.11"
+  quiver:
+    dependency: transitive
+    description:
+      name: quiver
+      sha256: b1c1ac5ce6688d77f65f3375a9abb9319b3cb32486bdc7a1e0fdf004d7ba4e47
+      url: "https://pub.dev"
+    source: hosted
+    version: "3.2.1"
   scope:
     dependency: transitive
     description:
@@ -782,7 +790,7 @@ packages:
     description:
       path: "."
       ref: main
-      resolved-ref: "27d83230d03b5bd4355d66eeff3547fe9faea3fb"
+      resolved-ref: ea0915d2b89cbc098220eca7b8303e2ab76ce3d6
       url: "https://github.com/hypercore-one/znn_ledger_dart"
     source: git
     version: "0.0.2"
