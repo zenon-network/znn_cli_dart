@@ -70,7 +70,7 @@ Future<AccountBlockTemplate> send(AccountBlockTemplate blockTemplate,
     }
 
     if (retries > 0) {
-      if (retryOrAbort()) {
+      if (confirm('Do you want to retry?', defaultValue: false)) {
         return await send(blockTemplate, true);
       } else {
         exit(-1);

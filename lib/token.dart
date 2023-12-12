@@ -249,9 +249,9 @@ Future<void> _issue() async {
           '${red('Error!')} Max supply must to be larger than the total supply');
       return;
     }
-    if (maxSupply > BigInt.from(1 << 53)) {
+    if (maxSupply >= BigInt.from(1 << 255)) {
       print(
-          '${red('Error!')} Max supply must to be less than ${((1 << 53)) - 1}');
+          '${red('Error!')} Max supply must to be less than ${BigInt.from(1 << 255)}');
       return;
     }
   } else {
@@ -271,8 +271,8 @@ Future<void> _issue() async {
   if (!confirm('Do you want to proceed?', defaultValue: false)) return;
 
   print('Issuing ${magenta(args[1])} ZTS token ...');
-  await send(znnClient.embedded.token.issueToken(args[1], args[2],
-      args[3], totalSupply, maxSupply, decimals, mintable, burnable, utility));
+  await send(znnClient.embedded.token.issueToken(args[1], args[2], args[3],
+      totalSupply, maxSupply, decimals, mintable, burnable, utility));
   print('Done');
 }
 
