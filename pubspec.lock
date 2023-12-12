@@ -789,8 +789,8 @@ packages:
     dependency: "direct main"
     description:
       path: "."
-      ref: main
-      resolved-ref: ea0915d2b89cbc098220eca7b8303e2ab76ce3d6
+      ref: "48e2e932ead9558e7255294b4f71ecc5eb7d325e"
+      resolved-ref: "48e2e932ead9558e7255294b4f71ecc5eb7d325e"
       url: "https://github.com/hypercore-one/znn_ledger_dart"
     source: git
     version: "0.0.2"
@@ -798,9 +798,9 @@ packages:
     dependency: "direct main"
     description:
       path: "."
-      ref: "feature/wallet"
-      resolved-ref: a2bcf8108f9444803db24752cae2d82f49d04452
-      url: "https://github.com/hypercore-one/znn_sdk_dart.git"
+      ref: "5967f385f6d64dcf61068485674a9e079534e68b"
+      resolved-ref: "5967f385f6d64dcf61068485674a9e079534e68b"
+      url: "https://github.com/zenon-network/znn_sdk_dart.git"
     source: git
     version: "0.0.6"
 sdks:
