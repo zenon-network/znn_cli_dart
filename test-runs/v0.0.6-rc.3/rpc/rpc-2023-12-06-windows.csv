@@ -1,0 +1,15 @@
+Column1,Column2,Column3,Column4
+Version: 0.0.6-rc.3,Environment: Windows 10,,
+Date: 2023-12-06,Tester: CryptoFish,,
+,,,
+Test case,Description,Priority,Result
+,,,
+Bridge,,,
+bridge.wrap.listByAddress address [networkClass chainId],List all wrap token requests made by EVM address.,PRIO2,PASS
+bridge.wrap.get id,Get wrap token request by id.,PRIO2,PASS
+bridge.unwrap.listByAddress toAddress,List all unwrap token requests by NoM address.,PRIO2,PASS
+bridge.unwrap.listUnredeemed [toAddress],List all unredeemed unwrap token requests.,PRIO2,PASS
+bridge.unwrap.get transactionHash logIndex,Get unwrap token request by hash and log index.,PRIO2,PASS
+,,,
+Liquidity,,,
+liquidity.getRewardTotal address,Display total rewards an address has earned.,PRIO2,PASS
