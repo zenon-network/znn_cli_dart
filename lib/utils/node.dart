@@ -44,6 +44,9 @@ Future<AccountBlockTemplate> send(AccountBlockTemplate blockTemplate,
     [bool reconnect = false, int retries = 1]) async {
   try {
     if (reconnect) {
+      if (znnClient.defaultKeyStore is LedgerWallet) {
+        (znnClient.defaultKeyStore as LedgerWallet).disconnect();
+      }
       // Reconnect the wallet.
       znnClient.defaultKeyStore = await znnClient.keyStoreManager
           .getWallet(walletDefinition, walletOptions);
