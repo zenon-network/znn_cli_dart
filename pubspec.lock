@@ -798,10 +798,10 @@ packages:
     dependency: "direct main"
     description:
       path: "."
-      ref: "5967f385f6d64dcf61068485674a9e079534e68b"
-      resolved-ref: "5967f385f6d64dcf61068485674a9e079534e68b"
+      ref: e88869160c3cfd34710ca317bcb92f1ac0ee60ca
+      resolved-ref: e88869160c3cfd34710ca317bcb92f1ac0ee60ca
       url: "https://github.com/zenon-network/znn_sdk_dart.git"
     source: git
-    version: "0.0.6"
+    version: "0.0.7"
 sdks:
   dart: ">=3.0.0 <4.0.0"
