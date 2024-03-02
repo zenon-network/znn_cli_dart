@@ -71,7 +71,7 @@ jobs:
           - name: Download libledger_ffi
             uses: robinraju/release-downloader@v1.8
             with:
-              repository: "hypercore-one/ledger_ffi_rs"
+              repository: "zenon-network/ledger_ffi_rs"
               latest: true
           - name: Package Linux binaries
             run: |
