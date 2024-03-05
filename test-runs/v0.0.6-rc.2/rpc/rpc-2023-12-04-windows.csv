@@ -1,0 +1,29 @@
+Column1,Column2,Column3,Column4
+Version: 0.0.6-rc.2,Environment: Windows 10,,
+Date: 2023-12-04,Tester: CryptoFish,,
+,,,
+Test case,Description,Priority,Result
+,,,
+Pillar,,,
+pillar.list,List all pillars.,PRIO2,PASS
+,,,
+Bridge,,,
+bridge.fees [tokenStandard],Display the accumulated wrapping fees for a ZTS.,PRIO2,PASS
+bridge.network.list,List all available bridge netwoks.,PRIO2,PASS
+bridge.network.get networkClass chainId,Get the information for a network class and chain id.,PRIO2,PASS
+bridge.wrap.list,List all wrap token requests.,PRIO2,PASS
+bridge.wrap.listByAddress address [networkClass chainId],List all wrap token requests made by EVM address.,PRIO2,FAIL
+bridge.wrap.listUnsigned,List all unsigned wrap token requests.,PRIO2,PASS
+bridge.wrap.get id,Get wrap token request by id.,PRIO2,FAIL
+bridge.unwrap.list,List all unwrap token requests by NoM address.,PRIO2,PASS
+bridge.unwrap.listByAddress toAddress,List all unwrap token requests by NoM address.,PRIO2,FAIL
+bridge.unwrap.listUnredeemed [toAddress],List all unredeemed unwrap token requests.,PRIO2,FAIL
+bridge.unwrap.get transactionHash logIndex,Get unwrap token request by hash and log index.,PRIO2,FAIL
+,,,
+Liquidity,,,
+liquidity.info,Get the liquidity information.,PRIO2,PASS
+liquidity.security,Get the liquidity security info.,PRIO2,PASS
+liquidity.timeChallenges,List the liquidity time challenges.,PRIO2,PASS
+liquidity.getFrontierReward address,Display total rewards an address has earned.,PRIO2,FAIL
+liquidity.getStakeEntries address,Display all stake entries for an address.,PRIO2,PASS
+liquidity.getUncollectedReward address,Display uncollected rewards for an address.,PRIO2,PASS

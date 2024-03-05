@@ -1,0 +1,65 @@
+Column1,Column2,Column3,Column4
+Version: 0.0.6-rc.1,Environment: Ubuntu 22.04.3 LTS,,
+Date: 2023-12-01,Tester: CryptoFish,,
+,,,
+Test case,Description,Priority,Result
+General functionality,,,
+balance address,List account balance.,PRIO2,PASS
+frontierMomentum,Display frontier momentum.,PRIO1,PASS
+createHash [hashType preimageLength],Create hash digests by using the stated algorithm.,PRIO2,PASS
+version,Display version information.,PRIO2,PASS
+,,,
+Statistical information,,,
+stats.networkInfo,Get the os info.,PRIO3,PASS
+stats.osInfo,Get the process info.,PRIO3,PASS
+stats.processInfo,Get the network info.,PRIO3,PASS
+stats.syncInfo,Get the sync info.,PRIO3,PASS
+,,,
+Plasma functionality,,,
+plasma.get address,Display the amount of plasma and QSR fused for an address.,PRIO1,PASS
+,,,
+Pillar,,,
+pillar.list,List all pillars.,PRIO2,
+,,,
+ZTS Tokens,,,
+token.list [pageIndex pageCount],List all tokens.,PRIO1,PASS
+token.getByStandard tokenStandard,List tokens by standard.,PRIO2,PASS
+token.getByOwner ownerAddress,List tokens by owner.,PRIO2,PASS
+,,,
+Wallet,,,
+wallet.list,List all wallets.,PRIO1,PASS
+wallet.createNew passphrase [keyStoreName],Create a new wallet.,PRIO1,PASS
+"wallet.createFromMnemonic ""mnemonic"" passphrase [keyStoreName]",Create a new wallet from a mnemonic.,PRIO1,PASS
+,,,
+Spork,,,
+spork.list,List all sporks.,PRIO2,PASS
+,,,
+HTLC,,,
+htlc.get id,Display htlc details.,PRIO2,PASS
+htlc.inspect blockHash,Inspect htlc account-block.,PRIO2,PASS
+htlc.getProxyStatus address,Display proxy unlock status for an address.,PRIO2,PASS
+,,,
+Bridge,,,
+bridge.info,Get the bridge information.,PRIO2,PASS
+bridge.security,Get the bridge security information.,PRIO2,PASS
+bridge.timeChallenges,List all bridge time challenges.,PRIO2,PASS
+bridge.orchestratorInfo,Get the orchestrator information.,PRIO2,PASS
+bridge.fees [tokenStandard],Display the accumulated wrapping fees for a ZTS.,PRIO2,
+bridge.network.list,List all available bridge netwoks.,PRIO2,
+bridge.network.get networkClass chainId,Get the information for a network class and chain id.,PRIO2,
+bridge.wrap.list,List all wrap token requests.,PRIO2,
+bridge.wrap.listByAddress address [networkClass chainId],List all wrap token requests made by EVM address.,PRIO2,
+bridge.wrap.listUnsigned,List all unsigned wrap token requests.,PRIO2,
+bridge.wrap.get id,Get wrap token request by id.,PRIO2,
+bridge.unwrap.list,List all unwrap token requests by NoM address.,PRIO2,
+bridge.unwrap.listByAddress toAddress,List all unwrap token requests by NoM address.,PRIO2,
+bridge.unwrap.listUnredeemed [toAddress],List all unredeemed unwrap token requests.,PRIO2,
+bridge.unwrap.get transactionHash logIndex,Get unwrap token request by hash and log index.,PRIO2,
+,,,
+Liquidity,,,
+liquidity.info,Get the liquidity information.,PRIO2,
+liquidity.security,Get the liquidity security info.,PRIO2,
+liquidity.timeChallenges,List the liquidity time challenges.,PRIO2,
+liquidity.getFrontierReward address,Display total rewards an address has earned.,PRIO2,
+liquidity.getStakeEntries address,Display all stake entries for an address.,PRIO2,
+liquidity.getUncollectedReward address,Display uncollected rewards for an address.,PRIO2,

@@ -3,7 +3,6 @@ name: Build and release znn-cli
 on:
   push:
     branches:
-      - cicd
       - master
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
@@ -30,7 +29,7 @@ jobs:
           - name: Install dependencies
             run: dart pub get
           - name: Build znn-cli
-            run: dart compile exe cli_handler.dart -o ${{ matrix.output-name }}
+            run: dart compile exe znn-cli.dart -o ${{ matrix.output-name }}
           - name: Upload artifacts
             uses: actions/upload-artifact@v3
             with:
@@ -62,12 +61,17 @@ jobs:
           - name: Download libpow_links
             uses: robinraju/release-downloader@v1.8
             with:
-              repository: "alienc0der/znn-pow-links-cpp"
+              repository: "zenon-network/znn-pow-links-cpp"
               latest: true
           - name: Download libargon2
             uses: robinraju/release-downloader@v1.8
             with:
-              repository: "alienc0der/argon2_ffi"
+              repository: "zenon-network/argon2_ffi"
+              latest: true
+          - name: Download libledger_ffi
+            uses: robinraju/release-downloader@v1.8
+            with:
+              repository: "zenon-network/ledger_ffi_rs"
               latest: true
           - name: Package Linux binaries
             run: |
@@ -75,26 +79,29 @@ jobs:
               chmod +x releases/znn-cli
               unzip -j libpow_links-linux-amd64.zip -d releases/
               unzip -j libargon2_ffi-linux-amd64.zip -d releases/
-              zip -jr releases/znn-cli-linux-amd64.zip releases/znn-cli releases/libpow_links.so releases/libargon2_ffi_plugin.so
-              rm releases/znn-cli releases/libpow_links.so releases/libargon2_ffi_plugin.so
+              unzip -j libledger_ffi-linux-amd64.zip -d releases/
+              zip -jr releases/znn-cli-linux-amd64.zip releases/znn-cli releases/libpow_links.so releases/libargon2_ffi_plugin.so releases/libledger_ffi.so
+              rm releases/znn-cli releases/libpow_links.so releases/libargon2_ffi_plugin.so releases/libledger_ffi.so
           - name: Package Windows binaries
             run: |
               mv znn-cli-windows.exe releases/znn-cli.exe
               chmod +x releases/znn-cli.exe
               unzip -j libpow_links-windows-amd64.zip -d releases/
               unzip -j libargon2_ffi-windows-amd64.zip -d releases/
+              unzip -j libledger_ffi-windows-amd64.zip -d releases/
               rm releases/generator.exe
-              zip -jr releases/znn-cli-windows-amd64.zip releases/znn-cli.exe releases/libpow_links.dll releases/argon2_ffi_plugin.dll
-              rm releases/znn-cli.exe releases/libpow_links.dll releases/argon2_ffi_plugin.dll
+              zip -jr releases/znn-cli-windows-amd64.zip releases/znn-cli.exe releases/libpow_links.dll releases/argon2_ffi_plugin.dll releases/libledger_ffi.dll
+              rm releases/znn-cli.exe releases/libpow_links.dll releases/argon2_ffi_plugin.dll releases/libledger_ffi.dll
           - name: Package macOS binaries
             run: |
               mv znn-cli-macos releases/znn-cli
               chmod +x releases/znn-cli
               unzip -j libpow_links-darwin-universal.zip -d releases/
               unzip -j libargon2_ffi-darwin-universal.zip -d releases/
+              unzip -j libledger_ffi-darwin-arch64.zip -d releases/
               rm releases/generator
-              zip -jr releases/znn-cli-darwin-universal.zip releases/znn-cli releases/libpow_links.dylib releases/libargon2_ffi.dylib
-              rm releases/znn-cli releases/libpow_links.dylib releases/libargon2_ffi.dylib
+              zip -jr releases/znn-cli-darwin-universal.zip releases/znn-cli releases/libpow_links.dylib releases/libargon2_ffi.dylib releases/libledger_ffi.dylib
+              rm releases/znn-cli releases/libpow_links.dylib releases/libargon2_ffi.dylib releases/libledger_ffi.dylib
           - name: Generate checksums
             run: |
               cd releases/
