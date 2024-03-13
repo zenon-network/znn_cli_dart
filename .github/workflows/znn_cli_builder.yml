@@ -71,7 +71,7 @@ jobs:
           - name: Download libledger_ffi
             uses: robinraju/release-downloader@v1.8
             with:
-              repository: "zenon-network/ledger_ffi_rs"
+              repository: "hypercore-one/ledger_ffi_rs"
               latest: true
           - name: Package Linux binaries
             run: |
@@ -98,7 +98,7 @@ jobs:
               chmod +x releases/znn-cli
               unzip -j libpow_links-darwin-universal.zip -d releases/
               unzip -j libargon2_ffi-darwin-universal.zip -d releases/
-              unzip -j libledger_ffi-darwin-arch64.zip -d releases/
+              unzip -j libledger_ffi-darwin-universal.zip -d releases/
               rm releases/generator
               zip -jr releases/znn-cli-darwin-universal.zip releases/znn-cli releases/libpow_links.dylib releases/libargon2_ffi.dylib releases/libledger_ffi.dylib
               rm releases/znn-cli releases/libpow_links.dylib releases/libargon2_ffi.dylib releases/libledger_ffi.dylib
