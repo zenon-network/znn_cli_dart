@@ -14,7 +14,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest, windows-latest, macOS-12]
-        sdk: [3.3.0]
+        sdk: [stable]
         include:
           - os: ubuntu-latest
             output-name: znn-cli-linux

@@ -8,7 +8,7 @@ environment:
 
 dependencies:
   args: ^2.4.2
-  dcli: ^3.0.2
+  dcli: ^4.0.4
   znn_sdk_dart:
     git:
       url: https://github.com/zenon-network/znn_sdk_dart.git
