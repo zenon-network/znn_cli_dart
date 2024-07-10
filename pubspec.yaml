@@ -1,6 +1,6 @@
 name: znn_cli_dart
 description: Zenon CLI tool
-version: 0.0.7
+version: 0.0.8
 publish_to: none
 
 environment:
