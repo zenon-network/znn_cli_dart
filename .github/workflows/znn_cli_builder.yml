@@ -14,7 +14,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest, windows-latest, macOS-12]
-        sdk: [3.1, stable]
+        sdk: [3.1]
         include:
           - os: ubuntu-latest
             output-name: znn-cli-linux
@@ -26,7 +26,7 @@ jobs:
           - name: Checkout
             uses: actions/checkout@v3
           - name: Setup Dart SDK
-            uses: dart-lang/setup-dart@v1.5.0
+            uses: dart-lang/setup-dart@v1
             with:
               sdk: ${{ matrix.sdk }}
           - name: Install dependencies
