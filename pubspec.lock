@@ -790,8 +790,8 @@ packages:
     description:
       path: "."
       ref: main
-      resolved-ref: "39018c1b5e85285fe5fee7e9f77a988f8d4cebef"
-      url: "https://github.com/hypercore-one/znn_ledger_dart.git"
+      resolved-ref: "56d7e8912ee69eed6895a4afffebca2ed1b965c4"
+      url: "https://github.com/zenon-network/znn_ledger_dart.git"
     source: git
     version: "0.0.5"
   znn_sdk_dart:

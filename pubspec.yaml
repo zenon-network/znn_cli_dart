@@ -15,7 +15,7 @@ dependencies:
       ref: 8511f17a0dfa721e8f0ec2e0b0aae409f509e102
   znn_ledger_dart:
     git:
-      url: https://github.com/hypercore-one/znn_ledger_dart.git
+      url: https://github.com/zenon-network/znn_ledger_dart.git
       ref: main
   bip39: ^1.0.6
   convert: ^3.1.1
