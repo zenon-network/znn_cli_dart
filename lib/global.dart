@@ -3,7 +3,7 @@ import 'package:znn_ledger_dart/znn_ledger_dart.dart';
 
 const znnDaemon = 'znnd';
 const znnCli = 'znn-cli';
-const znnCliVersion = '0.0.7';
+const znnCliVersion = '0.0.8';
 
 final Zenon znnClient = Zenon();
 final KeyStoreManager keyStoreManager =
